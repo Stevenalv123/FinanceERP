@@ -27,10 +27,10 @@ export default function Inventario() {
     return (
         <div>
             <div className="flex flex-row gap-4 justify-between mt-6">
-                <StatsCards title={"Total Proveedores"} icon={<UsersRound color="white" />} value={proveedores.length} />
-                <StatsCards title={"Proveedores Activos"} icon={<UsersRound color="green" />} value={proveedores.filter(p => p.estado === 1).length} />
-                <StatsCards title={"Cuentas por Pagar"} icon={<DollarSign color="red" />} value={"C$0"} />
-                <StatsCards title={"Movimientos hoy"} icon={<ShoppingCart color="white" />} value={"0"} />
+                <StatsCards title={"Total Proveedores"} icon={<span className="icon"><UsersRound className="text-title"/></span>} value={proveedores.length} />
+                <StatsCards title={"Proveedores Activos"} icon={<span className="icon text-green-400"><UsersRound className="text-title"/></span>} value={proveedores.filter(p => p.estado === 1).length} />
+                <StatsCards title={"Cuentas por Pagar"} icon={<span className="icon text-red-400"><DollarSign className="text-title"/></span>} value={"C$0"} />
+                <StatsCards title={"Movimientos hoy"} icon={<span className="icon"><ShoppingCart className="text-title"/></span>} value={"0"} />
             </div>
 
             <div className="mt-6">
@@ -44,7 +44,7 @@ export default function Inventario() {
                                     <p className="text-subtitle text-s">Administra tu cartera de proveedores</p>
                                 </div>
                                 <button
-                                    className="bg-title text-primary flex flex-row h-10 text-s gap-3 p-2 rounded-xl items-center hover:bg-[#E8E8E8] transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer"
+                                    className="bg-button text-button flex flex-row h-10 text-s gap-3 p-2 rounded-xl items-center hover:bg-[#E8E8E8] transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer"
                                     onClick={() => setIsModalOpen(true)}
                                 >
                                     <Plus />
@@ -77,7 +77,7 @@ export default function Inventario() {
                                 </thead>
                                 <tbody>
                                     {proveedores.map((p) => (
-                                        <tr key={p.id} className="border-t border-secondary text-sm hover:bg-[#1A1A1A] transition-colors">
+                                        <tr key={p.id} className="border-t border-secondary text-sm hover:bg-secondary transition-colors">
                                             <td className="py-3 px-2 font-mono text-center">{p.id}</td>
                                             <td className="py-3 px-2 font-medium text-center">{p.nombre_comercial}</td>
                                             <td className="py-3 px-2 text-subtitle text-center">{p.razon_social}</td>

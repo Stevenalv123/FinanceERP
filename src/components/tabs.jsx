@@ -50,7 +50,7 @@ export default function Tabs({ tabs = [], activeKey, onChange, width = "100%" })
 
             <div
                 ref={indicatorRef}
-                className="absolute top-1/2 -translate-y-1/2 h-[36px] bg-black rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-300 ease-[cubic-bezier(.2,.9,.2,1)] pointer-events-none z-10"
+                className="absolute top-1/2 -translate-y-1/2 h-[36px] bg-tab-indicator rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-300 ease-[cubic-bezier(.2,.9,.2,1)] pointer-events-none z-10"
                 style={{ left: 0, width: 0 }}
             />
 
@@ -59,7 +59,7 @@ export default function Tabs({ tabs = [], activeKey, onChange, width = "100%" })
                     key={tab.key}
                     data-key={tab.key}
                     onClick={() => onChange(tab.key)}
-                    className={`tabBtn relative z-20 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-150 cursor-pointer ${activeKey === tab.key ? "text-white" : "text-gray-400 hover:text-white"
+                    className={`tabBtn relative z-20 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-150 cursor-pointer ${activeKey === tab.key ? "text-tab-indicator" : "text-subtitle hover:text-title"
                         }`}
                 >
                     {tab.icon}

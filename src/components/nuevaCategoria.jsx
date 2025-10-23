@@ -17,12 +17,12 @@ export default function NuevaCategoria({ isOpen, onClose, onSave }) {
 
     return (
         <div className="fixed inset-0 bg-opacity-80 flex items-center justify-center p-4 bg-black/70 z-50 backdrop-blur-xs">
-            <div className="bg-[#0D0D0D] text-white p-6 rounded-xl w-full max-w-lg shadow-2xl border border-secondary">
+            <div className="bg-primary text-title p-6 rounded-xl w-full max-w-lg shadow-2xl border border-secondary">
                 <h4 className="text-xl font-semibold mb-4">Añadir Nueva Categoría</h4>
 
                 <form onSubmit={handleModalSubmit} className="space-y-4">
                     <div className="flex flex-col gap-2">
-                        <label htmlFor="cat-nombre" className="text-sm font-medium text-gray-300">
+                        <label htmlFor="cat-nombre" className="text-sm font-medium text-title">
                             Nombre de la Categoría
                         </label>
                         <input
@@ -32,12 +32,12 @@ export default function NuevaCategoria({ isOpen, onClose, onSave }) {
                             value={nombre}
                             onChange={(e) => setNombre(e.target.value)}
                             placeholder="ej: Bebidas Carbonatadas"
-                            className="bg-[#2A2A2A] border border-gray-700 rounded-xl p-3 focus:ring-blue-500 focus:border-blue-500 transition w-full"
+                            className="bg-input border border-secondary rounded-xl p-3 focus:ring-blue-500 focus:border-blue-500 transition w-full"
                         />
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <label htmlFor="cat-descripcion" className="text-sm font-medium text-gray-300">
+                        <label htmlFor="cat-descripcion" className="text-sm font-medium text-title">
                             Descripción (Opcional)
                         </label>
                         <textarea
@@ -46,7 +46,7 @@ export default function NuevaCategoria({ isOpen, onClose, onSave }) {
                             value={descripcion}
                             onChange={(e) => setDescripcion(e.target.value)}
                             placeholder="Descripción breve de la categoría"
-                            className="bg-[#2A2A2A] border border-gray-700 rounded-xl p-3 focus:ring-blue-500 focus:border-blue-500 transition resize-none w-full"
+                            className="bg-input border border-secondary rounded-xl p-3 focus:ring-blue-500 focus:border-blue-500 transition resize-none w-full"
                         ></textarea>
                     </div>
 
@@ -54,15 +54,15 @@ export default function NuevaCategoria({ isOpen, onClose, onSave }) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="bg-transparent border border-gray-600 text-white font-semibold py-2 px-4 rounded-xl hover:bg-secondary transition"
+                            className="bg-secondary text-button-text font-semibold py-2 px-4 rounded-xl hover:bg-secondary transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            className="bg-title text-primary font-semibold py-2 px-4 rounded-xl hover:bg-[#E8E8E8] transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer flex flex-row gap-2 items-center shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                            className="btn-new bg-button text-button p-3 rounded-lg flex justify-center gap-2 items-center hover:opacity-95 transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer"
                         >
-                            <Save size={18} />
+                            <span className="icon"><Save size={18} /></span>
                             Guardar Categoría
                         </button>
                     </div>

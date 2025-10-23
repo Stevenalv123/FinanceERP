@@ -52,10 +52,10 @@ export default function Inventario() {
     return (
         <div>
             <div className="flex flex-row gap-4 justify-between mt-6">
-                <StatsCards title={"Total Productos"} icon={<Box color="white" />} value={productos.length} />
-                <StatsCards title={"Valor Inventario"} icon={<TrendingUp color="white" />} value={`C$${valorTotalInventario.toFixed(2)}`} />
+                <StatsCards title={"Total Productos"} icon={<Box className="text-title" />} value={productos.length} />
+                <StatsCards title={"Valor Inventario"} icon={<TrendingUp className="text-title" />} value={`C$${valorTotalInventario.toFixed(2)}`} />
                 <StatsCards title={"Stock Bajo"} icon={<CircleAlert color="red" />} value={productos.filter(p => p.stock <= p.stock_minimo).length} />
-                <StatsCards title={"Movimientos hoy"} icon={<TrendingDown color="white" />} value={"0"} />
+                <StatsCards title={"Movimientos hoy"} icon={<TrendingDown className="text-title" />} value={"0"} />
             </div>
 
             <div className="mt-6">
@@ -68,8 +68,8 @@ export default function Inventario() {
                                     <h3 className="text-title text-xl font-bold">Gestión de productos</h3>
                                     <p className="text-subtitle text-s">Administra el catálogo de productos del inventario</p>
                                 </div>
-                                <button className="bg-title text-primary flex flex-row h-10 text-s gap-3 p-2 rounded-xl items-center cursor-pointer hover:bg-[#E8E8E8] hover:scale-110 transition" onClick={() => setIsModalOpen(true)}>
-                                    <Plus /> Nuevo Producto
+                                <button className="btn-new bg-button text-button flex flex-row h-10 text-s gap-3 p-2 rounded-xl items-center cursor-pointer hover:opacity-95 hover:scale-110 transition" onClick={() => setIsModalOpen(true)}>
+                                    <span className="icon"><Plus /></span> Nuevo Producto
                                 </button>
                             </div>
 
@@ -80,8 +80,8 @@ export default function Inventario() {
                                     <p className="p-4 text-center text-gray-400">No hay productos registrados. ¡Agrega uno nuevo!</p>
                                 ) : (
                                     <div className="inline-block min-w-full align-middle">
-                                        <div className="overflow-hidden rounded-lg border border-secondary mb-8">
-                                            <table className="min-w-full border-collapse text-title">
+                                        <div className="overflow-hidden rounded-lg mb-8">
+                                            <table className="min-w-full text-title">
                                                 <thead className="bg-secondary/10">
                                                     <tr className="border-b border-secondary/50 text-sm font-semibold text-subtitle">
                                                         <th className="py-3 px-4 text-center">Código</th>
@@ -99,13 +99,13 @@ export default function Inventario() {
                                                 </thead>
                                                 <tbody>
                                                     {productos.map((p) => (
-                                                        <tr key={p.id_producto} className="border-t border-secondary/30 text-sm hover:bg-secondary/10 transition-colors">
-                                                            <td className="py-3 px-4 font-mono text-center text-gray-400">{p.codigo_sku || "-"}</td>
-                                                            <td className="py-3 px-4 font-medium text-center text-white">{p.nombre}</td>
-                                                            <td className="py-3 px-4 text-center text-subtitle">{p.categorias_producto?.nombre || "N/A"}</td>
-                                                            <td className="py-3 px-4 text-center text-subtitle">C${p.precio_compra.toFixed(2)}</td>
-                                                            <td className="py-3 px-4 text-center text-subtitle">C${p.precio_venta.toFixed(2)}</td>
-                                                            <td className="py-3 px-4 text-center">
+                                                        <tr key={p.id_producto} className="border-t border-secondary text-sm hover:bg-secondary/10 transition-colors">
+                                                            <td className="py-4 px-4 font-mono text-center text-gray-400">{p.codigo_sku || "-"}</td>
+                                                            <td className="py-4 px-4 font-medium text-center text-title">{p.nombre}</td>
+                                                            <td className="py-4 px-4 text-center text-subtitle">{p.categorias_producto?.nombre || "N/A"}</td>
+                                                            <td className="py-4 px-4 text-center text-subtitle">C${p.precio_compra.toFixed(2)}</td>
+                                                            <td className="py-4 px-4 text-center text-subtitle">C${p.precio_venta.toFixed(2)}</td>
+                                                            <td className="py-4 px-4 text-center">
                                                                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${p.stock > p.stock_minimo
                                                                         ? 'bg-green-600/20 text-green-400'
                                                                         : 'bg-red-600/20 text-red-400'
@@ -113,11 +113,11 @@ export default function Inventario() {
                                                                     {p.stock}
                                                                 </span>
                                                             </td>
-                                                            <td className="py-3 px-4 text-center text-subtitle">{p.unidades_medidas?.nombre || "N/A"}</td>
-                                                            <td className="py-3 px-4 text-center text-subtitle">{p.proveedores?.nombre_comercial || "N/A"}</td>
-                                                            <td className="py-3 px-4 text-center text-subtitle">{new Date(p.fecha_registro).toLocaleDateString()}</td>
-                                                            <td className="py-3 px-4 text-center text-subtitle">{p.fecha_vencimiento ? new Date(p.fecha_vencimiento).toLocaleDateString() : "N/A"}</td>
-                                                            <td className="py-3 px-4">
+                                                            <td className="py-4 px-4 text-center text-subtitle">{p.unidades_medidas?.nombre || "N/A"}</td>
+                                                            <td className="py-4 px-4 text-center text-subtitle">{p.proveedores?.nombre_comercial || "N/A"}</td>
+                                                            <td className="py-4 px-4 text-center text-subtitle">{new Date(p.fecha_registro).toLocaleDateString()}</td>
+                                                            <td className="py-4 px-4 text-center text-subtitle">{p.fecha_vencimiento ? new Date(p.fecha_vencimiento).toLocaleDateString() : "N/A"}</td>
+                                                            <td className="py-4 px-4">
                                                                 <div className="flex justify-center gap-8">
                                                                     <button title="Editar Producto" className="text-blue-400 hover:text-blue-300 transition-colors transform hover:scale-110 cursor-pointer">
                                                                         <Pencil size={18}/>

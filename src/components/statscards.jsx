@@ -8,8 +8,8 @@ export default function StatsCards({ title, value, icon }) {
 
                 {icon && (
                     <div className="flex-shrink-0 ml-2">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-full bg-secondary/10">
-                            {icon}
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-full bg-secondary/10 text-title">
+                            <span className="icon">{icon}</span>
                         </div>
                     </div>
                 )}

@@ -1,4 +1,4 @@
-import { User, LogOut, ShoppingBag, ShoppingCart, Building2, UserCheck, Package, Users, Wallet, Wrench, FileSpreadsheetIcon, ChartColumn, TrendingUp, Plus } from "lucide-react"
+import { User, LogOut, ShoppingBag, ShoppingCart, Building2, UserCheck, Package, Users, Wallet, Wrench, FileSpreadsheetIcon, ChartColumn, TrendingUp, Plus, Sun, Moon } from "lucide-react"
 import {useState} from "react"
 import {useAuth} from "../contexts/authcontext"
 import Tabs from "../components/tabs"
@@ -8,9 +8,12 @@ import OnBuilding from "../components/onbuiliding"
 import Proveedores from "./proveedores"
 import { useEmpresa } from "../contexts/empresacontext"
 import { useEmpresas } from "../hooks/useEmpresas"
+import Clientes from "./clientes"
+import { useTheme } from "../contexts/themecontext"
 
 export default function Dashboard() {
     const {session}=useAuth();
+    const { theme, toggleTheme } = useTheme()
     const { empresas } = useEmpresas();
     const { empresaId } = useEmpresa();
     const empresaSeleccionada = empresas.find(e => e.id_empresa === empresaId);
@@ -41,11 +44,16 @@ export default function Dashboard() {
                 </div>
                 <div className="flex gap-10 items-center">
                     <div className="flex gap-2"> 
-                        <User color="white" />
+                        <User className="text-title" />
                         <span className="text-subtitle">{session.user.user_metadata.fullName}</span>
                     </div>
+                    {/* Tema toggle */}
+                    <button onClick={toggleTheme} className="text-title flex gap-3 border-1 p-2 rounded-xl w-30 items-center justify-center cursor-pointer hover:bg-secondary transition-transform duration-200 ease-in-out hover:scale-110">
+                        {theme === 'dark' ? <Sun color="white" /> : <Moon color="black" />}
+                        {theme === 'dark' ? 'Light' : 'Dark'}
+                    </button>
                     <button className="text-title flex gap-3 border-1 p-2 rounded-xl w-30 items-center justify-center cursor-pointer hover:bg-secondary transition-transform duration-200 ease-in-out hover:scale-110">
-                        <LogOut color="white" />
+                        <LogOut className="text-title" />
                         Salir
                     </button>
                 </div>
@@ -70,7 +78,7 @@ export default function Dashboard() {
                 )}
                 {activeTab === 'clientes' && (
                     <>
-                        <OnBuilding/>
+                        <Clientes/>
                     </>
                 )}
                 {activeTab === 'inventario' && (

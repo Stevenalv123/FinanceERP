@@ -3,17 +3,70 @@
 
 @import "tailwindcss";
 
-@theme {
+:root {
+  /* Dark theme (default) */
   --color-loginbg: #101929;
-  --color-primary: #090909;
-  --color-subtitle: #aab4c0;
-  --color-title: #FFFFFF;
-  --color-button: #FFFFFF;
-  --color-input: #111111;
-  --color-secondary: #262626;
-  --font-global: "Poppins", san-serif;
+  --color-primary: #121212;
+  --color-subtitle: #888888;
+  --color-title: #E0E0E0;
+  --color-button: #ffffff;
+  --color-button-text: #0f1724;
+  --color-button-cancel: #2b2b2b;
+  --color-input: #111318;
+  --color-secondary: #2b2b2b;
+  --font-global: "Poppins", sans-serif;
+  --color-tab-indicator: #000000;
+  --color-tab-indicator-text: #ffffff;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --color-loginbg: #f6f8fb; 
+  --color-primary: #FBFBFE;
+  --color-subtitle: #697477;
+  --color-title: #2A3B47;
+  --color-button: #1083D6;
+  --color-border-cards: #c4c2c2;
+  --color-button-text: #ffffff;
+  --color-button-cancel: #acacac;
+  --color-input: #ffffff;
+  --color-secondary: #e6e9ef;
+  --color-tab-indicator: #1083D6; 
+  --color-tab-indicator-text: #FFFF;
 }
 
 body{
   font-family: var(--font-global);
+  background-color: var(--color-loginbg);
+  color: var(--color-title);
+}
+
+.bg-primary { background-color: var(--color-primary) !important; }
+.bg-secondary { background-color: var(--color-secondary) !important; }
+.text-title { color: var(--color-title) !important; }
+.text-subtitle { color: var(--color-subtitle) !important; }
+.border-secondary { border-color: var(--color-secondary) !important; }
+.hover\:bg-secondary:hover { background-color: var(--color-secondary) !important; }
+.bg-button { background-color: var(--color-button) !important; }
+.text-button { color: var(--color-button-text) !important; }
+.bg-button-cancel { background-color: var(--color-button-cancel) !important; }
+.text-button-cancel { color: var(--color-button-text) !important; }
+
+.bg-tab-indicator {
+  background-color: var(--color-tab-indicator) !important;
+}
+.text-tab-indicator {
+  color: var(--color-tab-indicator-text) !important;
+}
+
+.border-button {
+  border-color: var(--color-button) !important;
+}
+
+.border-cards {
+  border-color: var(--color-border-cards) !important;
+}
+
+.hover\:text-title:hover {
+  color: var(--color-title) !important;
 }
