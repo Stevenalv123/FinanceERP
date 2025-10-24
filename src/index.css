@@ -35,9 +35,13 @@
   --color-tab-indicator-text: #FFFF;
 }
 
+html{
+  scrollbar-gutter: stable;
+}
+
 body{
   font-family: var(--font-global);
-  background-color: var(--color-loginbg);
+  background-color: var(--color-primary);
   color: var(--color-title);
 }
 

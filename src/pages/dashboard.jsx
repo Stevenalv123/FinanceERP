@@ -10,6 +10,7 @@ import { useEmpresa } from "../contexts/empresacontext"
 import { useEmpresas } from "../hooks/useEmpresas"
 import Clientes from "./clientes"
 import { useTheme } from "../contexts/themecontext"
+import Ventas from "./ventas"
 
 export default function Dashboard() {
     const {session}=useAuth();
@@ -68,7 +69,7 @@ export default function Dashboard() {
                 )}
                 {activeTab === 'ventas' && (
                     <>
-                        <OnBuilding/>
+                        <Ventas/>
                     </>
                 )}
                 {activeTab === 'compras' && (
