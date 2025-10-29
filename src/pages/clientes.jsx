@@ -20,7 +20,7 @@ export default function Clientes() {
     return (
         <div>
             <div className="flex flex-row gap-4 justify-between mt-6">
-                <StatsCards title={"Total Clientes"} icon={<Box className="text-title" />} value={0} />
+                <StatsCards title={"Total Clientes"} icon={<Box className="text-title" />} value={<span>{clientes.length}</span>} />
                 <StatsCards title={"Cuentas por Cobrar"} icon={<DollarSign className="text-title" />} value={`C$${valorTotalInventario.toFixed(2)}`} />
                 <StatsCards title={"Clientes Morosos"} icon={<CircleAlert color="red" />} value={0} />
                 <StatsCards title={"Pagos Pendientes"} icon={<TrendingDown className="text-title" />} value={"0"} />
