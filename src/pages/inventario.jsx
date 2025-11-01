@@ -15,9 +15,10 @@ export default function Inventario() {
 
     const [activeTab, setActiveTab] = useState("productos");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { productos, isLoading, eliminarProducto, agregarProducto } = useProductos();
+    const { productos = [], isLoading, eliminarProducto, agregarProducto } = useProductos();
 
     const valorTotalInventario = productos.reduce((total, producto) => {
+        if (!producto) return total; 
         return total + (producto.stock * producto.precio_compra);
     }, 0);
 
@@ -53,7 +54,7 @@ export default function Inventario() {
         <div>
             <div className="flex flex-row gap-4 justify-between mt-6">
                 <StatsCards title={"Total Productos"} icon={<Box className="text-title" />} value={productos.length} />
-                <StatsCards title={"Valor Inventario"} icon={<TrendingUp className="text-title" />} value={`C$${valorTotalInventario.toFixed(2)}`} />
+                <StatsCards title={"Valor Inventario"} icon={<TrendingUp className="text-title" />} value={`C$${valorTotalInventario}`} />
                 <StatsCards title={"Stock Bajo"} icon={<CircleAlert color="red" />} value={productos.filter(p => p.stock <= p.stock_minimo).length} />
                 <StatsCards title={"Movimientos hoy"} icon={<TrendingDown className="text-title" />} value={"0"} />
             </div>

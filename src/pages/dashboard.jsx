@@ -1,4 +1,4 @@
-import { User, LogOut, ShoppingBag, ShoppingCart, Building2, UserCheck, Package, Users, Wallet, Wrench, FileSpreadsheetIcon, ChartColumn, TrendingUp, Bot, Sun, Moon } from "lucide-react"
+import { User, LogOut, HardHat, ShoppingCart, Building2, UserCheck, Package, Users, Wallet, Wrench, FileSpreadsheetIcon, ChartColumn, TrendingUp, Bot, Sun, Moon } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "../contexts/authcontext"
 import Tabs from "../components/tabs"
@@ -13,6 +13,10 @@ import { useTheme } from "../contexts/themecontext"
 import Ventas from "./ventas"
 import tippy from "tippy.js"
 import BotComponent from "../components/bot"
+import CajasBancos from "./cajasbancos"
+import ActivosFijos from "./activosfijos"
+import Personal from "./personal"
+import EstadosFinancieros from "./estadosfinancieros"
 
 export default function Dashboard() {
     const { session } = useAuth();
@@ -23,12 +27,12 @@ export default function Dashboard() {
     const tabs = [
         { key: "empresas", label: "Empresas", icon: <Building2 size={16} /> },
         { key: 'ventas', label: 'Ventas', icon: <ShoppingCart size={16} /> },
-        { key: 'compras', label: 'Compras', icon: <ShoppingBag size={16} /> },
         { key: 'clientes', label: 'Clientes', icon: <UserCheck size={16} /> },
         { key: 'inventario', label: 'Inventario', icon: <Package size={16} /> },
         { key: 'proveedores', label: 'Proveedores', icon: <Users size={16} /> },
         { key: 'cajabancos', label: 'Cajas/Bancos', icon: <Wallet size={16} /> },
         { key: 'activosFijos', label: 'Activos Fijos', icon: <Wrench size={16} /> },
+        { key: 'personal', label: 'Personal', icon: <HardHat size={16} /> },
         { key: 'estadosFinancieros', label: 'Estados Financieros', icon: <FileSpreadsheetIcon size={16} /> },
         { key: 'analisis', label: 'Análisis', icon: <ChartColumn size={16} /> },
         { key: 'reportes', label: 'Reportes', icon: <TrendingUp size={16} /> },
@@ -60,7 +64,6 @@ export default function Dashboard() {
                             <User className="text-title" />
                             <span className="text-subtitle">{session.user.user_metadata.fullName}</span>
                         </div>
-                        {/* Tema toggle */}
                         <button onClick={toggleTheme} className="text-title flex gap-3 border-1 p-2 rounded-xl w-30 items-center justify-center cursor-pointer hover:bg-secondary transition-transform duration-200 ease-in-out hover:scale-110">
                             {theme === 'dark' ? <Sun color="white" /> : <Moon color="black" />}
                             {theme === 'dark' ? 'Light' : 'Dark'}
@@ -72,7 +75,7 @@ export default function Dashboard() {
                     </div>
                 </header>
 
-                <div className="w-[95%] mx-auto mt-4 flex flex-col gap-4">
+                <div className="w-[95%] mx-auto mt-4 flex flex-col gap-4 mb-20">
                     <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} width="100%" />
                     {activeTab === 'empresas' && (
                         <>
@@ -82,11 +85,6 @@ export default function Dashboard() {
                     {activeTab === 'ventas' && (
                         <>
                             <Ventas />
-                        </>
-                    )}
-                    {activeTab === 'compras' && (
-                        <>
-                            <OnBuilding />
                         </>
                     )}
                     {activeTab === 'clientes' && (
@@ -107,17 +105,22 @@ export default function Dashboard() {
                     )}
                     {activeTab === 'cajabancos' && (
                         <>
-                            <OnBuilding />
+                            <CajasBancos />
                         </>
                     )}
                     {activeTab === 'activosFijos' && (
                         <>
-                            <OnBuilding />
+                            <ActivosFijos />
+                        </>
+                    )}
+                    {activeTab === 'personal' && (
+                        <>
+                            <Personal />
                         </>
                     )}
                     {activeTab === 'estadosFinancieros' && (
                         <>
-                            <OnBuilding />
+                            <EstadosFinancieros />
                         </>
                     )}
                     {activeTab === 'analisis' && (

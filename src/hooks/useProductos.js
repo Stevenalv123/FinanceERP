@@ -15,12 +15,10 @@ export function useProductos() {
         const fetchProductos = async () => {
             setIsLoading(true);
             setError(null);
-
             try {
                 const { data, error } = await supabase
                     .from("productos")
-                    .select(`
-                        id_producto,
+                    .select(`id_producto,
                         codigo_sku,
                         nombre,
                         descripcion,
@@ -33,8 +31,7 @@ export function useProductos() {
                         fecha_registro,
                         categorias_producto(nombre),
                         proveedores(nombre_comercial),
-                        fecha_vencimiento
-                    `)
+                        fecha_vencimiento`)
                     .eq("id_empresa", empresaId)
                     .order("nombre", { ascending: true });
 
@@ -47,11 +44,11 @@ export function useProductos() {
                 setIsLoading(false);
             }
         };
-
         fetchProductos();
     }, [empresaId]);
 
     const generarSku = async (nombreProducto) => {
+
         if (!nombreProducto) return null;
 
         const base = nombreProducto
@@ -67,63 +64,147 @@ export function useProductos() {
             .select("codigo_sku")
             .eq("id_empresa", empresaId)
             .ilike("codigo_sku", `SKU-${base}-%`);
-
         if (error) {
             console.error("Error al verificar SKU:", error);
             return `SKU-${base}-001`;
         }
-
         const siguienteNumero = (data?.length || 0) + 1;
         const numeroFormateado = String(siguienteNumero).padStart(3, "0");
         return `SKU-${base}-${numeroFormateado}`;
+
     };
 
-    const agregarProducto = async (nuevoProducto) => {
+    const agregarProducto = async (nuevoProducto, infoPago) => {
         setIsLoading(true);
         setError(null);
 
-        try {
-            if (!empresaId) throw new Error("No hay empresa seleccionada.");
+        if (!empresaId) {
+            toast.error("No hay empresa seleccionada.");
+            setIsLoading(false);
+            return { success: false, message: "No hay empresa seleccionada." };
+        }
 
-            // FIX: Build the object for Supabase explicitly.
+        const ID_CUENTA_INVENTARIO = 7;
+        const ID_CUENTA_PROVEEDORES = 5;
+        const ID_CUENTA_CAJA = 1; // ¡Verifica este ID!
+
+        try {
+            // --- 1. Definir el objeto a insertar ---
             const productoParaInsertar = {
-                id_empresa: empresaId, // Add the required company ID
-                codigo_sku: nuevoProducto.codigo_sku,
-                nombre: nuevoProducto.nombre,
-                descripcion: nuevoProducto.descripcion,
-                id_categoria: nuevoProducto.id_categoria,
-                precio_compra: nuevoProducto.precio_compra,
-                precio_venta: nuevoProducto.precio_venta,
-                stock: nuevoProducto.stock,
-                stock_minimo: nuevoProducto.stock_minimo,
-                id_unidad_medida: nuevoProducto.id_unidad_medida,
-                id_proveedor: nuevoProducto.id_proveedor,
-                fecha_vencimiento: nuevoProducto.fecha_vencimiento,
-                estado: nuevoProducto.estado,
+                ...nuevoProducto, // Esto viene del formulario
+                id_empresa: empresaId // Añadimos el id_empresa
             };
 
-            console.log("Enviando este objeto al hook:", nuevoProducto);
-
-            const { data, error } = await supabase
+            // --- 2. Completar la consulta de inserción y selección ---
+            const { data: dataProducto, error: errorProducto } = await supabase
                 .from("productos")
-                .insert(productoParaInsertar) // Now this object has the correct structure
+                .insert(productoParaInsertar)
                 .select(`
-                *,
-                categorias_producto(nombre),
-                unidades_medidas(nombre),
-                proveedores(nombre_comercial)
-            `)
-                .single();
+                    id_producto,
+                    codigo_sku,
+                    nombre,
+                    descripcion,
+                    precio_compra,
+                    precio_venta,
+                    stock,
+                    stock_minimo,
+                    unidades_medidas(nombre),
+                    estado,
+                    fecha_registro,
+                    categorias_producto(nombre),
+                    proveedores(nombre_comercial),
+                    fecha_vencimiento
+                `)
+                .single(); // Insertamos uno, seleccionamos uno
 
-            if (error) throw error;
+            if (errorProducto) throw errorProducto;
 
-            setProductos((productosActuales) => [...productosActuales, data]);
+            // 3. Validar que dataProducto exista antes de actualizar el estado
+            if (dataProducto) {
+                setProductos((prev) => [...prev, dataProducto]);
+            } else {
+                throw new Error("El producto se creó, pero no se pudo recuperar.");
+            }
+
+            // --- 4. Lógica Contable (esto ya lo tenías bien) ---
+            const costoTotal = (nuevoProducto.precio_compra || 0) * (nuevoProducto.stock || 0);
+            if (costoTotal <= 0) {
+                return { success: true };
+            }
+
+            const fechaActual = new Date().toISOString().slice(0, 10);
+            const movimientosParaInsertar = [];
+
+            // ... (Tu lógica de DEBE y HABER de partida doble va aquí) ...
+            // 1. El DEBE (Aumento de Inventario)
+            movimientosParaInsertar.push({
+                id_empresa: empresaId,
+                id_cuenta: ID_CUENTA_INVENTARIO,
+                fecha: fechaActual,
+                tipo: 'DEBE',
+                monto: costoTotal,
+                descripcion: `Stock inicial: ${nuevoProducto.nombre}`
+            });
+
+            // 2. El HABER (Cómo se pagó)
+            if (infoPago.tipo === 'credito') {
+                movimientosParaInsertar.push({
+                    id_empresa: empresaId,
+                    id_cuenta: ID_CUENTA_PROVEEDORES,
+                    fecha: fechaActual,
+                    tipo: 'HABER',
+                    monto: costoTotal,
+                    descripcion: `Compra a crédito stock: ${nuevoProducto.nombre}`
+                });
+            } else if (infoPago.tipo === 'efectivo') {
+                movimientosParaInsertar.push({
+                    id_empresa: empresaId,
+                    id_cuenta: ID_CUENTA_CAJA,
+                    fecha: fechaActual,
+                    tipo: 'HABER',
+                    monto: costoTotal,
+                    descripcion: `Compra efectivo stock: ${nuevoProducto.nombre}`
+                });
+            } else if (infoPago.tipo === 'parcial') {
+                const montoEfectivo = infoPago.montoEfectivo || 0;
+                const montoCredito = costoTotal - montoEfectivo;
+
+                if (montoEfectivo > 0) {
+                    movimientosParaInsertar.push({
+                        id_empresa: empresaId,
+                        id_cuenta: ID_CUENTA_CAJA,
+                        fecha: fechaActual,
+                        tipo: 'HABER',
+                        monto: montoEfectivo,
+                        descripcion: `Pago efectivo stock: ${nuevoProducto.nombre}`
+                    });
+                }
+                if (montoCredito > 0) {
+                    movimientosParaInsertar.push({
+                        id_empresa: empresaId,
+                        id_cuenta: ID_CUENTA_PROVEEDORES,
+                        fecha: fechaActual,
+                        tipo: 'HABER',
+                        monto: montoCredito,
+                        descripcion: `Crédito stock: ${nuevoProducto.nombre}`
+                    });
+                }
+            }
+            // ...
+            if (movimientosParaInsertar.length > 0) {
+                const { error: errorMovimiento } = await supabase
+                    .from('movimiento')
+                    .insert(movimientosParaInsertar);
+                if (errorMovimiento) throw new Error(`Producto guardado, pero falló el movimiento: ${errorMovimiento.message}`);
+            }
 
             return { success: true };
 
         } catch (err) {
             setError(err.message);
             console.error("Error al agregar producto:", err);
+            // --- 5. CORRECCIÓN DE ERROR ---
+            // Tu componente busca 'result.message', no 'result.error'
             return { success: false, message: err.message };
         } finally {
             setIsLoading(false);
@@ -131,25 +212,14 @@ export function useProductos() {
     };
 
     const eliminarProducto = async (idProducto) => {
-        try {
-            const { error } = await supabase
-                .from("productos")
-                .delete()
-                .eq("id_producto", idProducto);
-
-            if (error) throw error;
-
-            setProductos((productosActuales) =>
-                productosActuales.filter((p) => p.id_producto !== idProducto)
-            );
-
-            return { success: true };
-
-        } catch (err) {
-            console.error("Error al eliminar producto:", err);
-            return { success: false, message: err.message };
-        }
     };
 
-    return { productos, isLoading, error, setProductos, agregarProducto, eliminarProducto };
+    return {
+        productos,
+        isLoading,
+        error,
+        setProductos,
+        agregarProducto,
+        eliminarProducto
+    };
 }

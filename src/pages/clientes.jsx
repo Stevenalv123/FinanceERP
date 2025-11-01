@@ -2,7 +2,7 @@ import StatsCards from "../components/statscards";
 import Tabs from "../components/tabs";
 import NuevoCliente from "../components/nuevoCliente";
 import { useState } from "react";
-import { Box, DollarSign, TrendingDown, CircleAlert, ArrowLeftRight, Plus, ShoppingBasket, Pencil, Trash } from "lucide-react";
+import { Box, DollarSign, TrendingDown, CircleAlert, ArrowLeftRight, Plus, ShoppingBasket } from "lucide-react";
 import { useClientes } from "../hooks/useClientes";
 import ClientesCards from "../components/clientesCards"
 
