@@ -86,7 +86,7 @@ export function useProductos() {
 
         const ID_CUENTA_INVENTARIO = 7;
         const ID_CUENTA_PROVEEDORES = 5;
-        const ID_CUENTA_CAJA = 1; // ¡Verifica este ID!
+        const ID_CUENTA_CAJA = 6; // ¡Verifica este ID!
 
         try {
             // --- 1. Definir el objeto a insertar ---

@@ -2,7 +2,7 @@ import React from 'react';
 
 // Movimos el componente CuentaRow aquí
 const CuentaRow = ({ cuenta, tipoCuenta }) => (
-    <div className="flex justify-between items-center py-1.5 border-b border-secondary">
+    <div className="flex justify-between items-center py-1.5">
         <span className="text-sm text-title">{cuenta.cuenta}</span>
         <span className="text-sm text-title">
             C$ {(tipoCuenta !== 'Activo' ? (cuenta.saldo * -1) : cuenta.saldo).toFixed(2)}
@@ -58,7 +58,7 @@ export default function BalanceGeneralReporte({
                                     {data.cuentas.map(cuenta => (
                                         <CuentaRow key={cuenta.id_cuenta} cuenta={cuenta} tipoCuenta="Activo" />
                                     ))}
-                                    <div className="flex justify-between items-center py-1 mt-1">
+                                    <div className="flex justify-between items-center py-1 mt-1 border-t border-secondary">
                                         <span className="text-sm font-semibold text-title">Total {subtipoNombre}</span>
                                         <span className="text-sm font-semibold text-title">
                                             C$ {data.total.toFixed(2)}
@@ -89,7 +89,7 @@ export default function BalanceGeneralReporte({
                                     {data.cuentas.map(cuenta => (
                                         <CuentaRow key={cuenta.id_cuenta} cuenta={cuenta} tipoCuenta="Pasivo" />
                                     ))}
-                                    <div className="flex justify-between items-center py-1 mt-1">
+                                    <div className="flex justify-between items-center py-1 mt-1 border-t border-secondary">
                                         <span className="text-sm font-semibold text-title">Total {subtipoNombre}</span>
                                         <span className="text-sm font-semibold text-title">
                                             C$ {(data.total * -1).toFixed(2)}
