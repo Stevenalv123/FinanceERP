@@ -4,11 +4,11 @@ import { toast } from "react-hot-toast"
 import { useActivosFijos } from "../hooks/useActivosFijos";
 import { useEmpleados } from "../hooks/useEmpleados";
 
-export default function NuevoActivoFijo({ onClose }) {
+export default function NuevoActivoFijo({ onClose, totalActivos }) {
     const { empleados, isLoading: isLoadingEmpleados } = useEmpleados();
-    const { addActivoFijo, cuentasActivo, isSaving } = useActivosFijos();
+    const { addActivoFijo, cuentasActivo, cuentasGasto, isSaving } = useActivosFijos();
     const [idCuentaActivo, setIdCuentaActivo] = useState('');
-    const [codigo, setCodigo] = useState('AF-001');
+    const [codigo, setCodigo] = useState('');
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [fechaCompra, setFechaCompra] = useState('');
@@ -18,13 +18,22 @@ export default function NuevoActivoFijo({ onClose }) {
     const [ubicacion, setUbicacion] = useState('');
     const [responsable, setResponsable] = useState('');
     const [estado, setEstado] = useState('Activo');
+    const [valorResidual, setValorResidual] = useState(0);
+    const [idCuentaGasto, setIdCuentaGasto] = useState('');
+    const [idCuentaDepAcum, setIdCuentaDepAcum] = useState('');
 
+    useEffect(() => {
+        const nuevoNumero = (totalActivos || 0) + 1;
+        const codigoGenerado = `AF-${String(nuevoNumero).padStart(3, '0')}`;
+        setCodigo(codigoGenerado);
+
+    }, [totalActivos]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!nombre || !fechaCompra || !valorCompra > 0) {
-            toast.error("Nombre, Fecha de Compra y Valor son requeridos.");
+        if (!nombre || !fechaCompra || !(valorCompra > 0) || !idCuentaActivo || !idCuentaGasto || !idCuentaDepAcum) {
+            toast.error("Por favor, complete todos los campos (Nombre, Fecha, Valor y Cuentas Contables).");
             return;
         }
 
@@ -39,7 +48,10 @@ export default function NuevoActivoFijo({ onClose }) {
             metodo_depreciacion: metodoDepreciacion,
             ubicacion,
             responsable: responsable,
-            estado
+            estado,
+            valor_residual: Number(valorResidual),
+            id_cuenta_gasto_depreciacion: Number(idCuentaGasto),
+            id_cuenta_depreciacion_acumulada: Number(idCuentaDepAcum)
         };
 
         const result = await addActivoFijo(nuevoActivo);
@@ -84,6 +96,31 @@ export default function NuevoActivoFijo({ onClose }) {
 
                                 {/* --- CAMBIO 2 --- */}
                                 {/* Mapea sobre 'cuentasActivo' (del hook), no 'cuentasDeActivo' */}
+                                {cuentasActivo && cuentasActivo.map(cuenta => (
+                                    <option key={cuenta.id_cuenta} value={cuenta.id_cuenta}>
+                                        {cuenta.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium text-title">Cuenta de Gasto (Deprec.)</label>
+                            <select value={idCuentaGasto} onChange={e => setIdCuentaGasto(e.target.value)} className="bg-input border border-secondary rounded-lg p-3" required>
+                                <option value="">Seleccione cuenta de gasto...</option>
+                                {cuentasGasto && cuentasGasto.map(cuenta => (
+                                    <option key={cuenta.id_cuenta} value={cuenta.id_cuenta}>
+                                        {cuenta.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium text-title">Cuenta de Deprec. Acumulada</label>
+                            <select value={idCuentaDepAcum} onChange={e => setIdCuentaDepAcum(e.target.value)} className="bg-input border border-secondary rounded-lg p-3" required>
+                                <option value="">Seleccione cuenta de depreciación acumulada...</option>
+                                {/* Re-usamos 'cuentasActivo' porque la Dep. Acum. es una cuenta de Activo (Contra-Activo) */}
                                 {cuentasActivo && cuentasActivo.map(cuenta => (
                                     <option key={cuenta.id_cuenta} value={cuenta.id_cuenta}>
                                         {cuenta.nombre}

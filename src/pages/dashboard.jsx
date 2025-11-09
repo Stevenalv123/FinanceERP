@@ -17,6 +17,7 @@ import CajasBancos from "./cajasbancos"
 import ActivosFijos from "./activosfijos"
 import Personal from "./personal"
 import EstadosFinancieros from "./estadosfinancieros"
+import AnalisisFinanciero from "./analisisfinanciero"
 
 export default function Dashboard() {
     const { session } = useAuth();
@@ -125,7 +126,7 @@ export default function Dashboard() {
                     )}
                     {activeTab === 'analisis' && (
                         <>
-                            <OnBuilding />
+                            <AnalisisFinanciero />
                         </>
                     )}
                     {activeTab === 'reportes' && (

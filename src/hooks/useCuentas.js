@@ -4,14 +4,15 @@ import { useEmpresa } from "../contexts/empresacontext";
 import { toast } from "react-hot-toast";
 
 export function useCuentas() {
-  const [cuentas, setCuentas] = useState([]);
+  const [cuentasConSaldo, setCuentasConSaldo] = useState([]);
+  const [catalogoCuentas, setCatalogoCuentas] = useState([]);
   const [tipos, setTipos] = useState([]);
   const [subtipos, setSubtipos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const { empresaId } = useEmpresa();
 
-  const fetchCuentas = useCallback(async () => {
+  const fetchCuentasConSaldo = useCallback(async () => {
     if (!empresaId) return;
 
     setIsLoading(true);
@@ -24,7 +25,7 @@ export function useCuentas() {
 
       if (error) throw error;
 
-      setCuentas(data || []); 
+      setCuentasConSaldo(data || []);
 
     } catch (err) {
       console.error("Error cargando balance de cuentas:", err.message);
@@ -35,6 +36,24 @@ export function useCuentas() {
     }
   }, [empresaId]);
 
+  const fetchCatalogoCuentas = useCallback(async () => {
+    if (!empresaId) return;
+    try {
+      const { data, error } = await supabase
+        .from('cuentas_empresa') // <-- Llama a la TABLA original
+        .select(`id_cuenta, nombre, codigo, id_tipo`) // Pide solo lo necesario
+        .eq('id_empresa', empresaId)
+        .eq('estado', true)
+        .order('nombre', { ascending: true });
+
+      if (error) throw error;
+      setCatalogoCuentas(data || []); // Guarda en el nuevo estado
+    } catch (err) {
+      console.error("Error cargando catálogo de cuentas:", err.message);
+      toast.error("No se pudo cargar el catálogo de cuentas");
+    }
+  }, [empresaId]);
+
   useEffect(() => {
     const fetchCatalogos = async () => {
       try {
@@ -42,7 +61,6 @@ export function useCuentas() {
           .from('tipo_cuenta')
           .select('*')
           .order('nombre', { ascending: true });
-
         if (tiposError) throw tiposError;
         setTipos(tiposData || []);
 
@@ -50,22 +68,19 @@ export function useCuentas() {
           .from('subtipo_cuenta')
           .select('*')
           .order('nombre', { ascending: true });
-
         if (subtiposError) throw subtiposError;
         setSubtipos(subtiposData || []);
-
       } catch (err) {
         console.error("Error cargando catálogos de cuentas:", err.message);
-        toast.error("Error al cargar catálogos de cuentas");
       }
     };
-
     fetchCatalogos();
-  }, []); 
+  }, []);
 
   useEffect(() => {
-    fetchCuentas();
-  }, [fetchCuentas]); 
+    fetchCuentasConSaldo(); 
+    fetchCatalogoCuentas(); 
+  }, [fetchCuentasConSaldo, fetchCatalogoCuentas]);
 
   const crearCuenta = async (cuentaData) => {
     if (!empresaId) {
@@ -78,12 +93,12 @@ export function useCuentas() {
       return null;
     }
 
-    setIsLoading(true); 
+    setIsLoading(true);
     setError(null);
 
     try {
       const { data, error } = await supabase
-        .from('cuentas_empresa') 
+        .from('cuentas_empresa')
         .insert({
           id_empresa: empresaId,
           nombre: cuentaData.nombre,
@@ -99,7 +114,8 @@ export function useCuentas() {
 
       toast.success("✅ Cuenta creada exitosamente");
 
-      await fetchCuentas(); 
+      await fetchCuentasConSaldo(); 
+      await fetchCatalogoCuentas();
 
       return data;
 
@@ -118,12 +134,13 @@ export function useCuentas() {
   };
 
   return {
-    cuentas,    
-    tipos,      
-    subtipos,   
+    cuentas: cuentasConSaldo,    
+    catalogoCuentas,
+    tipos,
+    subtipos,
     isLoading,
     error,
     crearCuenta,
-    fetchCuentas
+    fetchCuentas: fetchCuentasConSaldo
   };
 }

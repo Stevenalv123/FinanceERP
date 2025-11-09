@@ -2,9 +2,12 @@ import StatsCards from "../components/statscards";
 import { useState } from "react";
 import { Wrench, TrendingDown, Plus } from "lucide-react";
 import NuevoActivoFijo from "../components/nuevoactivofijo";
+import ActivosFijosCards from "../components/activosfijosCards";
+import { useActivosFijos } from "../hooks/useActivosFijos";
 
 export default function ActivosFijos() {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const {activosFijos} = useActivosFijos();
 
     return (
         <div>
@@ -27,23 +30,23 @@ export default function ActivosFijos() {
                         </button>
                     </div>
 
-                    {/* {clientes.length === 0 ? (
+                    {activosFijos.length === 0 ? (
                         <p className="text-center text-subtitle">No hay activos registrados</p>
                     ) : (
                         <div className="mt-8 flex flex-col gap-4">
-                            {clientes.map(cliente => (
-                                <ClientesCards key={cliente.id_cliente} {...cliente} />
+                            {activosFijos.map(activosFijos => (
+                                <ActivosFijosCards key={activosFijos.id_activo_fijo} {...activosFijos} />
                             ))}
                         </div>
-                    )} */}
-                </div>
+                    )}
+                </div>  
             </div>
 
             {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50 backdrop-blur-sm">
                     <div className="absolute inset-0" onClick={() => setIsModalOpen(false)}></div>
                     <div className="relative z-10 mx-4">
-                        <NuevoActivoFijo onClose={() => setIsModalOpen(false)} />
+                        <NuevoActivoFijo onClose={() => setIsModalOpen(false)} totalActivos={activosFijos.length} />
                     </div>
                 </div>
             )}

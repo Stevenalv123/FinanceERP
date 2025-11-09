@@ -45,7 +45,7 @@ export function useVenta() {
 
   const crearVenta = async ({
     id_cliente = null,
-    tipo_pago = "Contado", 
+    tipo_pago = "Contado",
     plazo_dias = null,
     referencia = null,
     detalle_items = [],

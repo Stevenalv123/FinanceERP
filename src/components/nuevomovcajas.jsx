@@ -8,7 +8,7 @@ import { useCuentas } from '../hooks/useCuentas';
 export default function NuevomovCaja({ onClose }) {
     const { agregarMovimiento, isLoading: isSavingMov } = useCajasBancos();
     const { 
-        cuentas,        
+        catalogoCuentas: cuentas,        
         tipos,          
         subtipos,       
         crearCuenta,    

@@ -9,11 +9,11 @@ export function useActivosFijos() {
     const { empresaId } = useEmpresa();
     const [activosFijos, setActivosFijos] = useState([]);
     const [cuentasActivo, setCuentasActivo] = useState([]);
+    const [cuentasGasto, setCuentasGasto] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
 
-    // ... (fetchActivosFijos sigue igual) ...
     const fetchActivosFijos = useCallback(async () => {
         if (!empresaId) return;
         setIsLoading(true);
@@ -21,8 +21,6 @@ export function useActivosFijos() {
         try {
             const { data, error } = await supabase
                 .from(TABLA)
-                // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-                // Especificamos la FK a usar: cuentas_empresa:id_cuenta_activo
                 .select(`
                     *, 
                     cuentas_empresa:id_cuenta_activo ( nombre, codigo )
@@ -40,7 +38,6 @@ export function useActivosFijos() {
         }
     }, [empresaId]);
 
-    // ... (fetchCuentasDeActivo sigue igual) ...
     const fetchCuentasDeActivo = useCallback(async () => {
         if (!empresaId) return;
         try {
@@ -57,11 +54,32 @@ export function useActivosFijos() {
         }
     }, [empresaId]);
 
-    // ... (useEffect sigue igual) ...
+    const fetchCuentasDeGasto = useCallback(async () => {
+        if (!empresaId) return;
+        try {
+            const { data, error } = await supabase
+                .from('cuentas_empresa')
+                .select('*')
+                .eq('id_empresa', empresaId)
+                // 
+                // NOTA: Asumo que el tipo Gasto es 6. 
+                // ¡Verifica este ID en tu tabla 'tipos_cuenta'!
+                //
+                .eq('id_tipo', 5) // <-- VERIFICA ESTE ID
+                .order('nombre', { ascending: true });
+
+            if (error) throw error;
+            setCuentasGasto(data || []);
+        } catch (err) {
+            console.error("Error al cargar cuentas de gasto:", err.message);
+        }
+    }, [empresaId]);
+
     useEffect(() => {
         fetchActivosFijos();
         fetchCuentasDeActivo();
-    }, [fetchActivosFijos, fetchCuentasDeActivo]);
+        fetchCuentasDeGasto();
+    }, [fetchActivosFijos, fetchCuentasDeActivo, fetchCuentasDeGasto]);
 
 
     const addActivoFijo = async (nuevoActivo) => {
@@ -71,11 +89,9 @@ export function useActivosFijos() {
 
         setIsSaving(true);
         setError(null);
-        const ID_CUENTA_PAGO = 1;
+        const ID_CUENTA_PAGO = 8;
 
         try {
-            // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-            // Faltaba definir el objeto que se iba a insertar.
             const activoParaInsertar = {
                 ...nuevoActivo,
                 id_empresa: empresaId
@@ -83,7 +99,7 @@ export function useActivosFijos() {
 
             const { data, error } = await supabase
                 .from(TABLA)
-                .insert(activoParaInsertar) // Ahora 'activoParaInsertar' sí está definido
+                .insert(activoParaInsertar)
                 .select()
                 .single();
 
@@ -123,7 +139,7 @@ export function useActivosFijos() {
 
         } catch (err) {
             console.error("Error al agregar activo fijo:", err.message);
-            return { success: false, message: err.message }; // <- Corregido (decía 'error' en vez de 'message')
+            return { success: false, message: err.message }; 
         } finally {
             setIsSaving(false);
         }
@@ -132,6 +148,7 @@ export function useActivosFijos() {
     return {
         activosFijos,
         cuentasActivo,
+        cuentasGasto,
         isLoading,
         isSaving,
         error,
