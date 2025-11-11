@@ -20,14 +20,14 @@ const CuentaRowComparativa = ({ cuenta, tipo, datosAnteriores, baseVerticalActua
             <span className="text-sm text-title col-span-1 text-left">{cuenta.cuenta}</span>
             <span className="text-sm text-title col-span-1">C$ {saldoActual.toFixed(2)}</span>
             <span className="text-sm text-title col-span-1">{verticalActual.toFixed(1)}%</span>
-            <span className="text-sm text-subtitle col-span-1">C$ {saldoAnterior.toFixed(2)}</span>
-            <span className="text-sm text-subtitle col-span-1">{verticalAnterior.toFixed(1)}%</span>
-            <span className={`text-sm col-span-1 ${varAbsoluta >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <span className="text-sm text-title col-span-1">C$ {saldoAnterior.toFixed(2)}</span>
+            <span className="text-sm text-title col-span-1">{verticalAnterior.toFixed(1)}%</span>
+            <span className={`text-sm text-title col-span-1`}>
                 {varAbsoluta.toFixed(2)}
             </span>
-            <span className={`text-sm col-span-1 ${varRelativa >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <span className={`text-sm text-title col-span-1`}>
                 {varRelativa.toFixed(1)}%
-            </span>            
+            </span>
         </div>
     );
 };
@@ -53,12 +53,12 @@ const TotalRowComparativa = ({ label, totalActual, totalAnterior, tipo = 'Activo
             <span className="text-sm text-title col-span-1 text-left">{label}</span>
             <span className="text-sm text-title col-span-1">C$ {saldoActual.toFixed(2)}</span>
             <span className="text-sm text-title col-span-1">{verticalActual.toFixed(1)}%</span>
-            <span className="text-sm text-subtitle col-span-1">C$ {saldoAnterior.toFixed(2)}</span>
-            <span className="text-sm text-subtitle col-span-1">{verticalAnterior.toFixed(1)}%</span>
-            <span className={`text-sm col-span-1 ${varAbsoluta >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <span className="text-sm text-title col-span-1">C$ {saldoAnterior.toFixed(2)}</span>
+            <span className="text-sm text-title col-span-1">{verticalAnterior.toFixed(1)}%</span>
+            <span className={`text-sm col-span-1`}>
                 {varAbsoluta.toFixed(2)}
             </span>
-            <span className={`text-sm col-span-1 ${varRelativa >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <span className={`text-sm col-span-1`}>
                 {varRelativa.toFixed(1)}%
             </span>
         </div>
@@ -196,7 +196,7 @@ export default function BalanceGeneralReporte({
                                             label={`Total ${subtipoNombre}`}
                                             totalActual={data.total}
                                             totalAnterior={dataAnterior.total}
-                                            tipo="Activo"
+                                            tipo="Pasivo"
                                             baseVerticalActual={totalPasivoMasPatrimonio}
                                             baseVerticalAnterior={totalPasivoMasPatrimonioAnterior}
                                         />

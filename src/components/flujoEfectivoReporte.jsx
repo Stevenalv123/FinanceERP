@@ -104,8 +104,8 @@ export default function FlujoEfectivoReporte({ isLoading, datosActuales, datosAn
         f.f_inversion = -f.cambioActivosFijos; // Aumento de Activo = Compra = Resta Flujo
 
         // --- 3. FLUJO DE FINANCIACIÓN ---
-        const prestamosActual = findSaldo(datosActuales.pasivosAgrupados, "Préstamos Bancarios") || 0;
-        const prestamosAnterior = findSaldo(datosAnteriores.pasivosAgrupados, "Préstamos Bancarios") || 0;
+        const prestamosActual = findSaldo(datosActuales.pasivosAgrupados, "Documentos por pagar Largo plazo") || 0;
+        const prestamosAnterior = findSaldo(datosAnteriores.pasivosAgrupados, "Documentos por pagar Largo plazo") || 0;
         f.cambioPrestamos = prestamosActual - prestamosAnterior; // Aumento de Pasivo = Suma Flujo
 
         const capitalActual = findSaldoPatrimonio(datosActuales.patrimonio, "Capital Social") || 0;

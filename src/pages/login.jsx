@@ -94,10 +94,10 @@ export default function Login() {
                 </div>
                 
                 <div className="flex flex-row gap-1 bg-secondary rounded-xl p-1">
-                    <button className={`w-full rounded-xl p-1 font-medium text-sm cursor-pointer transition-colors duration-300 ${activeTab === "login" ? "text-title bg-primary" : "text-subtitle"}`} onClick={()=>handleTabChange("login")}>
+                    <button className={`w-full rounded-xl p-1 font-medium text-sm cursor-pointer transition-colors duration-300 ${activeTab === "login" ? "text-title bg-black" : "text-subtitle"}`} onClick={()=>handleTabChange("login")}>
                         Iniciar Sesión
                     </button>
-                    <button className={`w-full rounded-xl p-2 font-medium text-sm cursor-pointer transition-colors duration-300 ${activeTab === "registrarse" ? "text-title bg-primary" : "text-subtitle"}`} onClick={()=>handleTabChange("registrarse")}>
+                    <button className={`w-full rounded-xl p-2 font-medium text-sm cursor-pointer transition-colors duration-300 ${activeTab === "registrarse" ? "text-title bg-black" : "text-subtitle"}`} onClick={()=>handleTabChange("registrarse")}>
                         Registrarse
                     </button>
                 </div>
@@ -106,13 +106,13 @@ export default function Login() {
                     <form className="space-y-4 mb-4 mt-4 flex flex-col gap-2" onSubmit={handleLogin}>
                         <div className="flex flex-col gap-1">
                             <label className="text-title text-sm font-bold text-start">Correo Electrónico</label>
-                            <input type="email" required placeholder="admin@empresa.com" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle" onChange={(e) => setEmail(e.target.value)}/>
+                            <input type="email" required placeholder="admin@empresa.com" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle border border-secondary" onChange={(e) => setEmail(e.target.value)}/>
                         </div>
                         <div className="flex flex-col gap-1">
                             <label className="text-title text-sm font-bold text-start">Contraseña</label>
-                            <input type="password" required placeholder="••••••••" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle" onChange={(e) => setPassword(e.target.value)}/>
+                            <input type="password" required placeholder="••••••••" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle border border-secondary" onChange={(e) => setPassword(e.target.value)}/>
                         </div>
-                        <button className="w-full bg-button text-primary py-2 px-4 rounded-xl font-medium">
+                        <button className="w-full bg-white text-black cursor-pointer py-2 px-4 rounded-xl font-medium">
                             Iniciar Sesión
                         </button>
                     </form>
@@ -130,7 +130,7 @@ export default function Login() {
                             <label className="text-title text-sm font-bold text-start">Contraseña</label>
                             <input type="password" required placeholder="••••••••" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle" onChange={(e) => setPassword(e.target.value)}/>
                         </div>
-                        <button className="w-full bg-button text-primary py-2 px-4 rounded-xl font-medium">
+                        <button className="w-full cursor-pointer bg-white text-black py-2 px-4 rounded-xl font-medium">
                             Registrarse
                         </button>
                     </form>

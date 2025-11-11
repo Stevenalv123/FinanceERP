@@ -21,11 +21,11 @@ const CuentaRowComparativa = ({ cuenta, tipo, datosAnteriores, baseVerticalActua
         <div className="grid grid-cols-7 items-center py-1.5 text-right">
             <span className="text-sm text-title col-span-1 text-left">{cuenta.cuenta}</span>
             <span className="text-sm text-title col-span-1">C$ {saldoActual.toFixed(2)}</span>
-            <span className="text-sm text-title col-span-1">{verticalActual.toFixed(1)}%</span>
-            <span className="text-sm text-subtitle col-span-1">C$ 0.00</span>
+            <span className="text-sm text-subtitle col-span-1">{verticalActual.toFixed(1)}%</span>
+            <span className="text-sm text-title col-span-1">C$ 0.00</span>
             <span className="text-sm text-subtitle col-span-1">0.0%</span>
-            <span className="text-sm text-green-500 col-span-1">{varAbsoluta.toFixed(2)}</span>
-            <span className="text-sm text-green-500 col-span-1">---</span>
+            <span className="text-sm col-span-1">{varAbsoluta.toFixed(2)}</span>
+            <span className="text-sm col-span-1">---</span>
         </div>
     );
 };

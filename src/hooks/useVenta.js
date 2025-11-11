@@ -43,37 +43,26 @@ export function useVenta() {
   }, [fetchVentas]);
 
 
-  const crearVenta = async ({
-    id_cliente = null,
-    tipo_pago = "Contado",
-    plazo_dias = null,
-    referencia = null,
-    detalle_items = [],
-    numero_factura,
-  }) => {
+  const crearVenta = async (ventaData) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      if (!empresaId || detalle_items.length === 0 || !numero_factura) {
-        throw new Error("Faltan datos obligatorios: empresa, items o número de factura.");
+      if (!empresaId || !ventaData.id_cliente || ventaData.detalle_items.length === 0) {
+        throw new Error("Faltan datos obligatorios: empresa, cliente o items.");
       }
 
-      const { data, error: rpcError } = await supabase.rpc("fn_crear_nueva_venta", {
+      const { data: nuevaVentaId, error: rpcError } = await supabase.rpc("sp_registrar_venta", {
         p_id_empresa: empresaId,
-        p_id_cliente: id_cliente,
-        p_tipo_pago: tipo_pago,
-        p_plazo_dias: plazo_dias,
-        p_referencia: referencia,
-        p_detalle_items: detalle_items,
-        p_numero_factura: numero_factura,
+        p_id_cliente: Number(ventaData.id_cliente),
+        p_tipo_pago: ventaData.tipo_pago, // <-- AÑADE ESTA LÍNEA
+        p_detalle_ventas: ventaData.detalle_items
       });
 
       if (rpcError) throw rpcError;
 
-      fetchVentas();
-
-      return data;
+      await fetchVentas();
+      return nuevaVentaId;
 
     } catch (err) {
       console.error("Error creando venta:", err.message);

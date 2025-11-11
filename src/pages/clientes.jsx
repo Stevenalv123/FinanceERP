@@ -1,10 +1,13 @@
 import StatsCards from "../components/statscards";
 import Tabs from "../components/tabs";
 import NuevoCliente from "../components/nuevoCliente";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Box, DollarSign, TrendingDown, CircleAlert, ArrowLeftRight, Plus, ShoppingBasket } from "lucide-react";
 import { useClientes } from "../hooks/useClientes";
-import ClientesCards from "../components/clientesCards"
+import ClientesCards from "../components/clientesCards";
+import { useCuentasPorCobrar } from "../hooks/useCuentasPorCobrar";
+import RegistrarPagoCliente from "../components/registrarPagoCliente"; 
+import { format } from "date-fns/format";
 
 export default function Clientes() {
     const tabs = [
@@ -14,8 +17,28 @@ export default function Clientes() {
 
     const [activeTab, setActiveTab] = useState("clientes");
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPagoModalOpen, setIsPagoModalOpen] = useState(false);
+    const [facturaSeleccionada, setFacturaSeleccionada] = useState(null);
     const { clientes } = useClientes();
     const valorTotalInventario = 0;
+
+    const {
+        facturasPendientes,
+        isLoading: isLoadingCxC,
+        fetchFacturasPendientes
+    } = useCuentasPorCobrar();
+
+    const { totalPorCobrar, clientesMorosos } = useMemo(() => {
+        const total = facturasPendientes.reduce((sum, f) => sum + f.saldo_pendiente, 0);
+        const clientesUnicos = new Set(facturasPendientes.map(f => f.id_cliente));
+        return { totalPorCobrar: total, clientesMorosos: clientesUnicos.size };
+    }, [facturasPendientes]);
+
+    // --- 5. HANDLER PARA ABRIR EL MODAL DE PAGO ---
+    const handleAbrirPago = (factura) => {
+        setFacturaSeleccionada(factura);
+        setIsPagoModalOpen(true);
+    };
 
     return (
         <div>
@@ -52,6 +75,54 @@ export default function Clientes() {
                             )}
                         </>
                     )}
+
+                    {activeTab === "cuentasporcobrar" && (
+                        <>
+                            <div className="flex flex-col gap-1 mb-6">
+                                <h3 className="text-title text-xl font-bold">Cuentas por Cobrar</h3>
+                                <p className="text-subtitle text-s">Facturas de clientes pendientes de pago.</p>
+                            </div>
+                            <div className="overflow-x-auto">
+                                {isLoadingCxC ? (
+                                    <p className="p-4 text-center text-gray-400">Cargando facturas...</p>
+                                ) : facturasPendientes.length === 0 ? (
+                                    <p className="p-4 text-center text-gray-400">¡Felicidades! No hay cuentas por cobrar.</p>
+                                ) : (
+                                    <table className="min-w-full text-title">
+                                        <thead className="bg-secondary/10">
+                                            <tr className="border-b border-secondary/50 text-sm font-semibold text-subtitle">
+                                                <th className="py-3 px-4 text-left">Cliente</th>
+                                                <th className="py-3 px-4 text-center">Factura</th>
+                                                <th className="py-3 px-4 text-center">Fecha Venta</th>
+                                                <th className="py-3 px-4 text-right">Total Factura</th>
+                                                <th className="py-3 px-4 text-right">Saldo Pendiente</th>
+                                                <th className="py-3 px-4 text-center">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {facturasPendientes.map((f) => (
+                                                <tr key={f.id_venta} className="border-t border-secondary text-sm hover:bg-secondary/10">
+                                                    <td className="py-3 px-4 text-left">{f.nombre_cliente}</td>
+                                                    <td className="py-3 px-4 text-center">{f.codigo_venta}</td>
+                                                    <td className="py-3 px-4 text-center">{format(new Date(f.fecha_venta), 'dd/MM/yyyy')}</td>
+                                                    <td className="py-3 px-4 text-right">C$ {f.total_venta.toFixed(2)}</td>
+                                                    <td className="py-3 px-4 text-right font-bold">C$ {f.saldo_pendiente.toFixed(2)}</td>
+                                                    <td className="py-3 px-4 text-center">
+                                                        <button
+                                                            className="bg-green-600/20 text-white-400 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-green-500/30"
+                                                            onClick={() => handleAbrirPago(f)}
+                                                        >
+                                                            Registrar Pago
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -60,6 +131,18 @@ export default function Clientes() {
                     <div className="absolute inset-0" onClick={() => setIsModalOpen(false)}></div>
                     <div className="relative z-10 mx-4">
                         <NuevoCliente onClose={() => setIsModalOpen(false)} />
+                    </div>
+                </div>
+            )}
+
+            {isPagoModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50 backdrop-blur-sm">
+                    <div className="absolute inset-0" onClick={() => setIsPagoModalOpen(false)}></div>
+                    <div className="relative z-10 mx-4">
+                        <RegistrarPagoCliente
+                            factura={facturaSeleccionada}
+                            onClose={() => setIsPagoModalOpen(false)}
+                        />
                     </div>
                 </div>
             )}

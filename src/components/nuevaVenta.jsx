@@ -74,16 +74,11 @@ export default function NuevaVenta({ onClose }) {
         }
 
         const ventaData = {
-            numero_factura: numeroFactura,
             id_cliente: cliente || null,
-            tipo_pago: tipoPago,
-            plazo_dias: tipoPago === "credito" ? calcularDias(fecha, vencimiento) : null,
-            referencia,
+            tipo_pago: tipoPago, // <-- AÑADE ESTA LÍNEA
             detalle_items: productosSeleccionados.map(p => ({
-                id_producto: p.id_producto,
-                cantidad: p.cantidad,
-                precio_unitario: p.precio,
-                descuento: p.descuento,
+                "IdProducto": p.id_producto,
+                "Cantidad": p.cantidad
             }))
         };
 
