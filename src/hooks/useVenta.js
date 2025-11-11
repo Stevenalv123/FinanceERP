@@ -56,7 +56,8 @@ export function useVenta() {
         p_id_empresa: empresaId,
         p_id_cliente: Number(ventaData.id_cliente),
         p_tipo_pago: ventaData.tipo_pago, // <-- AÑADE ESTA LÍNEA
-        p_detalle_ventas: ventaData.detalle_items
+        p_detalle_ventas: ventaData.detalle_items,
+        p_numero_factura: ventaData.numero_factura
       });
 
       if (rpcError) throw rpcError;

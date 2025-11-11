@@ -25,8 +25,8 @@ export default function Ventas() {
 
     const getClientName = (clientId) => {
         if (isLoadingClientes || !clientes) return '...';
-        const client = clientes.find(c => c.id_cliente === clientId);
-        return client ? client.nombre : 'Cliente General';
+        const client = clientes.find(c => c.id_cliente === clientId);   
+        return client ? client.nombre : 'Cliente General'; 
     };
 
     const getStatusBadge = (estado) => {

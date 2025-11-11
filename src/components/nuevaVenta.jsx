@@ -74,6 +74,7 @@ export default function NuevaVenta({ onClose }) {
         }
 
         const ventaData = {
+            numero_factura: numeroFactura,
             id_cliente: cliente || null,
             tipo_pago: tipoPago, // <-- AÑADE ESTA LÍNEA
             detalle_items: productosSeleccionados.map(p => ({
