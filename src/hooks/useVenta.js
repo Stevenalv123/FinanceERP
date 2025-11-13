@@ -55,9 +55,11 @@ export function useVenta() {
       const { data: nuevaVentaId, error: rpcError } = await supabase.rpc("sp_registrar_venta", {
         p_id_empresa: empresaId,
         p_id_cliente: Number(ventaData.id_cliente),
-        p_tipo_pago: ventaData.tipo_pago, // <-- AÑADE ESTA LÍNEA
+        p_tipo_pago: ventaData.tipo_pago, 
         p_detalle_ventas: ventaData.detalle_items,
-        p_numero_factura: ventaData.numero_factura
+        p_numero_factura: ventaData.numero_factura,
+        p_fecha_vencimiento: ventaData.fechavencimiento,
+        p_plazo_dias: ventaData.plazo_dias
       });
 
       if (rpcError) throw rpcError;

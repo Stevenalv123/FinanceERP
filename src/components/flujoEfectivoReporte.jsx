@@ -131,7 +131,7 @@ export default function FlujoEfectivoReporte({ isLoading, datosActuales, datosAn
 
     return (
         <div className="mt-4 rounded-xl border-1 border-secondary p-4 w-full md:w-2/3 mx-auto">
-            <h1 className="text-title font-semibold text-lg">Flujo de Efectivo (Método Indirecto)</h1>
+            <h1 className="text-title font-semibold text-lg">Flujo de Efectivo</h1>
             <p className="text-subtitle">Análisis del movimiento de efectivo</p>
 
             <div className="mt-4">

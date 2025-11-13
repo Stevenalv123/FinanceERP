@@ -40,12 +40,16 @@ export default function Clientes() {
         setIsPagoModalOpen(true);
     };
 
+    const totalDeudas = useMemo(() => {
+        return facturasPendientes.reduce((total, factura) => total + factura.saldo_pendiente, 0);
+    }, [facturasPendientes]);
+
     return (
         <div>
             <div className="flex flex-row gap-4 justify-between mt-6">
                 <StatsCards title={"Total Clientes"} icon={<Box className="text-title" />} value={<span>{clientes.length}</span>} />
-                <StatsCards title={"Cuentas por Cobrar"} icon={<DollarSign className="text-title" />} value={`C$${valorTotalInventario.toFixed(2)}`} />
-                <StatsCards title={"Clientes Morosos"} icon={<CircleAlert color="red" />} value={0} />
+                <StatsCards title={"Cuentas por Cobrar"} icon={<DollarSign className="text-title" />} value={`C$${totalDeudas.toFixed(2)}`} />
+                <StatsCards title={"Clientes Morosos"} icon={<CircleAlert color="red" />} value={clientesMorosos} />
                 <StatsCards title={"Pagos Pendientes"} icon={<TrendingDown className="text-title" />} value={"0"} />
             </div>
 
@@ -94,8 +98,9 @@ export default function Clientes() {
                                                 <th className="py-3 px-4 text-left">Cliente</th>
                                                 <th className="py-3 px-4 text-center">Factura</th>
                                                 <th className="py-3 px-4 text-center">Fecha Venta</th>
-                                                <th className="py-3 px-4 text-right">Total Factura</th>
-                                                <th className="py-3 px-4 text-right">Saldo Pendiente</th>
+                                                <th className="py-3 px-4 text-center">Fecha Vencimiento</th>
+                                                <th className="py-3 px-4 text-center">Total Factura</th>
+                                                <th className="py-3 px-4 text-center">Saldo Pendiente</th>
                                                 <th className="py-3 px-4 text-center">Acción</th>
                                             </tr>
                                         </thead>
@@ -103,10 +108,11 @@ export default function Clientes() {
                                             {facturasPendientes.map((f) => (
                                                 <tr key={f.id_venta} className="border-t border-secondary text-sm hover:bg-secondary/10">
                                                     <td className="py-3 px-4 text-left">{f.nombre_cliente}</td>
-                                                    <td className="py-3 px-4 text-center">{f.codigo_venta}</td>
+                                                    <td className="py-3 px-4 text-center">{f.numero_factura}</td>
                                                     <td className="py-3 px-4 text-center">{format(new Date(f.fecha_venta), 'dd/MM/yyyy')}</td>
-                                                    <td className="py-3 px-4 text-right">C$ {f.total_venta.toFixed(2)}</td>
-                                                    <td className="py-3 px-4 text-right font-bold">C$ {f.saldo_pendiente.toFixed(2)}</td>
+                                                    <td className="py-3 px-4 text-center">{format(new Date(f.fecha_vencimiento), 'dd/MM/yyyy')}</td>
+                                                    <td className="py-3 px-4 text-center">C$ {f.monto_total ? f.monto_total.toFixed(2) : null}</td>
+                                                    <td className="py-3 px-4 text-center font-bold">C$ {f.saldo_pendiente.toFixed(2)}</td>
                                                     <td className="py-3 px-4 text-center">
                                                         <button
                                                             className="bg-green-600/20 text-white-400 px-3 py-1 rounded-lg text-xs font-semibold hover:bg-green-500/30"
