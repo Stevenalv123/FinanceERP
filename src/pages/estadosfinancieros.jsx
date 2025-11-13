@@ -1,5 +1,5 @@
 import Tabs from "../components/tabs";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Zap } from "lucide-react";
 import { supabase } from "../supabase/supabaseclient";
 import { useEmpresa } from "../contexts/empresacontext";
@@ -7,6 +7,13 @@ import { toast } from "react-hot-toast";
 import BalanceGeneralReporte from "../components/balanceGeneralReporte";
 import EstadoResultadosReporte from "../components/estadoResultadosReporte";
 import FlujoEfectivoReporte from "../components/flujoEfectivoReporte";
+import usePersistentState from "../hooks/usePersistantState";
+
+const getTodayString = () => {
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    return today.toISOString().split('T')[0];
+}
 
 export default function EstadosFinancieros() {
     const [cuentasActuales, setCuentasActuales] = useState([]);
@@ -18,16 +25,49 @@ export default function EstadosFinancieros() {
         { key: 'flujoEfectivo', label: 'Flujo de Efectivo' },
     ]);
     const [activeTab, setActiveTab] = useState('balanceGeneral');
-    const [fechaInicio, setFechaInicio] = useState('');
-    const [fechaCierre, setFechaCierre] = useState('');
+    const [empresaInfo, setEmpresaInfo] = useState(null);
+    const [fechaInicio, setFechaInicio] = usePersistentState(
+        'finance_erp_fecha_inicio',
+        getTodayString()
+    );
+    const [fechaCierre, setFechaCierre] = usePersistentState(
+        'finance_erp_fecha_cierre',
+        getTodayString()
+    );
     const [isProcessing, setIsProcessing] = useState(false);
     const { empresaId } = useEmpresa();
 
-    const handleGenerarReporte = async () => {
+    useEffect(() => {
+        const fetchEmpresaInfo = async () => {
+            if (!empresaId) return;
+            try {
+                const { data, error } = await supabase
+                    .from('empresa')
+                    .select(`
+                        nombre, 
+                        id_moneda, 
+                        moneda:moneda(id_moneda, nombre, simbolo)
+                    `)
+                    .eq('id_empresa', empresaId)
+                    .single();
+
+                if (error) throw error;
+                setEmpresaInfo(data);
+            } catch (err) {
+                toast.error("No se pudo cargar la información de la empresa.");
+                console.error(err);
+            }
+        };
+
+        fetchEmpresaInfo();
+    }, [empresaId]);
+
+    const handleGenerarReporte = useCallback(async (showAlerts = false) => {
         if (!fechaInicio || !fechaCierre) {
             toast.error("Seleccione fecha de inicio y cierre");
             return;
         }
+        if (!empresaId) return;
         setIsLoading(true);
 
         let fechaAnterior = new Date(fechaInicio);
@@ -54,7 +94,11 @@ export default function EstadosFinancieros() {
         } finally {
             setIsLoading(false);
         }
-    }; // <-- FIN DE handleGenerarReporte
+    }, [empresaId, fechaInicio, fechaCierre]);
+
+    useEffect(() => {
+        handleGenerarReporte();
+    }, [handleGenerarReporte]);
 
     // --- TUS useMemo EN EL LUGAR CORRECTO ---
     const datosActuales = useMemo(() => {
@@ -157,9 +201,13 @@ export default function EstadosFinancieros() {
         };
     }, [cuentasAnteriores]);
 
-    const handleRegistrarDepreciacion = async () => {
+    const handleRegistrarDepreciacion = useCallback(async () => {
         if (!fechaCierre) {
             toast.error("Por favor, selecciona la 'Fecha de cierre' para el proceso.");
+            return;
+        }
+        if (!empresaId) {
+            toast.error("No hay empresa seleccionada.");
             return;
         }
         setIsProcessing(true);
@@ -175,10 +223,10 @@ export default function EstadosFinancieros() {
             toast.error(`Error al procesar: ${error.message}`);
         } else {
             toast.success("¡Depreciación registrada con éxito!");
-            handleGenerarReporte(); // Refresca los datos
+            handleGenerarReporte(true); // Refresca los datos
         }
         setIsProcessing(false);
-    };
+    }, [empresaId, fechaCierre, handleGenerarReporte]);
 
     return (
         <div className="p-1 mt-4">
@@ -187,7 +235,9 @@ export default function EstadosFinancieros() {
             <div className="flex flex-row justify-between items-center">
                 <div className="flex flex-col text-title gap-1 mb-4 ">
                     <h4 className="font-semibold text-xl">Estados Financieros</h4>
-                    <p className="text-subtitle">Empresa: Nombre de la empresa | Moneda: USD</p>
+                    <p className="text-subtitle">
+                        Empresa: {empresaInfo ? empresaInfo.nombre : 'Cargando...'} | Moneda: {empresaInfo ? empresaInfo.moneda.simbolo : 'N/A'}
+                    </p>
                 </div>
 
                 <div className="flex flex-row gap-4 justify-center items-center">
@@ -195,7 +245,7 @@ export default function EstadosFinancieros() {
                     <input type="date" className="border-1 p-2 rounded-lg text-sm text-title" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
                     <h4 className="font-semibold text-sm">Periodo de cierre:</h4>
                     <input type="date" className="border-1 p-2 rounded-lg text-sm text-title" value={fechaCierre} onChange={(e) => setFechaCierre(e.target.value)} />
-                    <button className="bg-button text-button px-4 py-2 rounded-lg font-semibold cursor-pointer text-sm hover:bg-primary-dark transition-colors duration-200 ease-in-out" onClick={handleGenerarReporte}>
+                    <button className="bg-button text-button px-4 py-2 rounded-lg font-semibold cursor-pointer text-sm hover:bg-primary-dark transition-colors duration-200 ease-in-out" onClick={() => handleGenerarReporte(true)}>
                         Generar
                     </button>
                     <button

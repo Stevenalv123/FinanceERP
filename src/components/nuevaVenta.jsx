@@ -74,8 +74,11 @@ export default function NuevaVenta({ onClose }) {
         }
 
         const ventaData = {
+            numero_factura: numeroFactura,
             id_cliente: cliente || null,
-            tipo_pago: tipoPago, // <-- AÑADE ESTA LÍNEA
+            tipo_pago: tipoPago,
+            plazo_dias: tipoPago === 'credito' ? calcularDias(fecha, vencimiento) : 0,
+            fechavencimiento: tipoPago === 'credito' ? vencimiento : null,
             detalle_items: productosSeleccionados.map(p => ({
                 "IdProducto": p.id_producto,
                 "Cantidad": p.cantidad
