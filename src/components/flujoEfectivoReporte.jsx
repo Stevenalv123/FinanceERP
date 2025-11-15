@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { calcularFlujoDeEfectivo } from '../utils/financialCalculations';
 
 // --- Helper: Fila para el reporte de flujo ---
 // Muestra el concepto y el monto. Si es un subtotal, lo pone en negrita.
@@ -50,79 +51,10 @@ const findSaldoPatrimonio = (patrimonioArray, nombre) => {
 export default function FlujoEfectivoReporte({ isLoading, datosActuales, datosAnteriores }) {
 
     // El corazón del Flujo de Efectivo: un 'useMemo' para calcular todo
-    const flujo = useMemo(() => {
-        // Objeto de retorno por defecto
-        const f = {
-            utilidadNeta: 0, gastoDepreciacion: 0,
-            cambioClientes: 0, cambioInventario: 0, cambioProveedores: 0,
-            f_operacion: 0,
-            cambioActivosFijos: 0,
-            f_inversion: 0,
-            cambioPrestamos: 0, cambioCapital: 0,
-            f_financiacion: 0,
-            flujoNetoTotal: 0,
-            cajaInicial: 0, cajaFinal: 0,
-        };
-
-        // Si no hay datos, retorna el objeto vacío
-        if (!datosActuales || !datosAnteriores) return f;
-
-        // --- 1. FLUJO DE OPERACIÓN ---
-
-        // A. Utilidad Neta del PERÍODO
-        f.utilidadNeta = (datosActuales.utilidadNeta || 0) - (datosAnteriores.utilidadNeta || 0);
-
-        // B. Ajustes (Partidas no monetarias)
-        const deprecActual = findSaldo(datosActuales.gastosAgrupados, "Gasto por Depreciación");
-        const deprecAnterior = findSaldo(datosAnteriores.gastosAgrupados, "Gasto por Depreciación");
-        f.gastoDepreciacion = deprecActual - deprecAnterior;
-
-        // C. Cambios en Capital de Trabajo
-        const clientesActual = findSaldo(datosActuales.activosAgrupados, "Clientes");
-        const clientesAnterior = findSaldo(datosAnteriores.activosAgrupados, "Clientes");
-        f.cambioClientes = clientesActual - clientesAnterior; // Aumento de Activo = Resta Flujo
-
-        const inventarioActual = findSaldo(datosActuales.activosAgrupados, "Inventario");
-        const inventarioAnterior = findSaldo(datosAnteriores.activosAgrupados, "Inventario");
-        f.cambioInventario = inventarioActual - inventarioAnterior; // Aumento de Activo = Resta Flujo
-
-        const proveedoresActual = findSaldo(datosActuales.pasivosAgrupados, "Proveedores");
-        const proveedoresAnterior = findSaldo(datosAnteriores.pasivosAgrupados, "Proveedores");
-        f.cambioProveedores = proveedoresActual - proveedoresAnterior; // Aumento de Pasivo = Suma Flujo
-
-        // Total Operación
-        f.f_operacion = f.utilidadNeta + f.gastoDepreciacion - f.cambioClientes - f.cambioInventario + f.cambioProveedores;
-
-        // --- 2. FLUJO DE INVERSIÓN ---
-        // (Simplificado: suma de cambios en Activos No Corrientes)
-        const equipoOficinaActual = findSaldo(datosActuales.activosAgrupados, "Equipo de Oficina");
-        const equipoOficinaAnterior = findSaldo(datosAnteriores.activosAgrupados, "Equipo de Oficina");
-        const eqTransporteActual = findSaldo(datosActuales.activosAgrupados, "Equipo de Transporte");
-        const eqTransporteAnterior = findSaldo(datosAnteriores.activosAgrupados, "Equipo de Transporte");
-
-        f.cambioActivosFijos = (equipoOficinaActual + eqTransporteActual) - (equipoOficinaAnterior + eqTransporteAnterior);
-        f.f_inversion = -f.cambioActivosFijos; // Aumento de Activo = Compra = Resta Flujo
-
-        // --- 3. FLUJO DE FINANCIACIÓN ---
-        const prestamosActual = findSaldo(datosActuales.pasivosAgrupados, "Documentos por pagar Largo plazo") || 0;
-        const prestamosAnterior = findSaldo(datosAnteriores.pasivosAgrupados, "Documentos por pagar Largo plazo") || 0;
-        f.cambioPrestamos = prestamosActual - prestamosAnterior; // Aumento de Pasivo = Suma Flujo
-
-        const capitalActual = findSaldoPatrimonio(datosActuales.patrimonio, "Capital Social") || 0;
-        const capitalAnterior = findSaldoPatrimonio(datosAnteriores.patrimonio, "Capital Social") || 0;
-        f.cambioCapital = capitalActual - capitalAnterior; // Aumento de Patrimonio = Suma Flujo
-
-        f.f_financiacion = f.cambioPrestamos + f.cambioCapital;
-
-        // --- 4. TOTALES Y RECONCILIACIÓN ---
-        f.flujoNetoTotal = f.f_operacion + f.f_inversion + f.f_financiacion;
-
-        f.cajaInicial = findSaldo(datosAnteriores.activosAgrupados, "Caja");
-        f.cajaFinal = findSaldo(datosActuales.activosAgrupados, "Caja");
-
-        return f;
-
-    }, [datosActuales, datosAnteriores]);
+    const flujo = useMemo(() =>
+        calcularFlujoDeEfectivo(datosActuales, datosAnteriores),
+        [datosActuales, datosAnteriores]
+    );
 
 
     if (isLoading) {

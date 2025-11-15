@@ -1,6 +1,6 @@
 import Tabs from "../components/tabs";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Zap } from "lucide-react";
+import { Zap, Download } from "lucide-react";
 import { supabase } from "../supabase/supabaseclient";
 import { useEmpresa } from "../contexts/empresacontext";
 import { toast } from "react-hot-toast";
@@ -8,6 +8,7 @@ import BalanceGeneralReporte from "../components/balanceGeneralReporte";
 import EstadoResultadosReporte from "../components/estadoResultadosReporte";
 import FlujoEfectivoReporte from "../components/flujoEfectivoReporte";
 import usePersistentState from "../hooks/usePersistentState";
+import { exportFinancialReports } from "../utils/exportToExcel";
 
 const getTodayString = () => {
     const today = new Date();
@@ -255,6 +256,14 @@ export default function EstadosFinancieros() {
                     >
                         <Zap size={16} />
                         {isProcessing ? "Procesando..." : "Registrar Depreciación"}
+                    </button>
+                    <button
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm cursor-pointer hover:bg-green-500 transition-colors duration-200 ease-in-out flex items-center gap-2"
+                        onClick={() => exportFinancialReports(datosActuales, datosAnteriores, empresaInfo, fechaInicio, fechaCierre)}
+                        disabled={isLoading || cuentasActuales.length === 0}
+                    >
+                        <Download size={16} />
+                        Exportar
                     </button>
                 </div>
             </div>

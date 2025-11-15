@@ -156,7 +156,7 @@ export default function Dashboard() {
                 )}
 
                 <footer className="fixed bottom-0 left-0 w-full border-t-1 border-secondary p-4 text-center text-subtitle bg-primary z-40">
-                    &copy; {new Date().getFullYear()} Finance ERP. Todos los derechos reservados. Solución tecnológica desarrollada por Steven Alvarez.
+                    &copy; {new Date().getFullYear()} Finance ERP. Todos los derechos reservados.
                 </footer>
             </div>
         </>

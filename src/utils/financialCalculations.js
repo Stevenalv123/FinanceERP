@@ -1,14 +1,30 @@
+// /utils/financialCalculations.js
+
+// Helper para encontrar saldos (sin cambios, el error no estaba aquí)
 const findSaldo = (cuentas, nombres) => {
     const nombresLower = nombres.map(n => n.toLowerCase());
     let total = 0;
-    cuentas.forEach(cuenta => {
-        if (nombresLower.includes(cuenta.cuenta?.toLowerCase())) {
-            total += cuenta.saldo;
-        }
-    });
+
+    // Maneja tanto los objetos (activosAgrupados) como los arrays (patrimonio)
+    if (Array.isArray(cuentas)) {
+        cuentas.forEach(cuenta => {
+            if (nombresLower.includes(cuenta.cuenta?.toLowerCase())) {
+                total += cuenta.saldo;
+            }
+        });
+    } else if (typeof cuentas === 'object' && cuentas !== null) {
+        Object.values(cuentas).forEach(subtipo => {
+            subtipo.cuentas.forEach(cuenta => {
+                if (nombresLower.includes(cuenta.cuenta?.toLowerCase())) {
+                    total += cuenta.saldo;
+                }
+            });
+        });
+    }
     return total;
 };
 
+// Esta es la lógica que estaba dentro de tu FlujoEfectivoReporte.jsx
 export const calcularFlujoDeEfectivo = (datosActuales, datosAnteriores) => {
     const f = {
         utilidadNeta: 0, gastoDepreciacion: 0,
@@ -26,20 +42,21 @@ export const calcularFlujoDeEfectivo = (datosActuales, datosAnteriores) => {
     // --- 1. FLUJO DE OPERACIÓN ---
     f.utilidadNeta = (datosActuales.utilidadNeta || 0) - (datosAnteriores.utilidadNeta || 0);
 
-    const deprecActual = findSaldo(datosActuales.gastosAgrupados || [], "Gasto por Depreciación");
-    const deprecAnterior = findSaldo(datosAnteriores.gastosAgrupados || [], "Gasto por Depreciación");
+    // --- CORRECCIONES: Pasar arrays [] en lugar de strings ---
+    const deprecActual = findSaldo(datosActuales.gastosAgrupados || [], ["Gasto por Depreciación"]);
+    const deprecAnterior = findSaldo(datosAnteriores.gastosAgrupados || [], ["Gasto por Depreciación"]);
     f.gastoDepreciacion = deprecActual - deprecAnterior;
 
-    const clientesActual = findSaldo(datosActuales.activosAgrupados || {}, "Clientes");
-    const clientesAnterior = findSaldo(datosAnteriores.activosAgrupados || {}, "Clientes");
+    const clientesActual = findSaldo(datosActuales.activosAgrupados || {}, ["Clientes"]);
+    const clientesAnterior = findSaldo(datosAnteriores.activosAgrupados || {}, ["Clientes"]);
     f.cambioClientes = clientesActual - clientesAnterior;
 
-    const inventarioActual = findSaldo(datosActuales.activosAgrupados || {}, "Inventario");
-    const inventarioAnterior = findSaldo(datosAnteriores.activosAgrupados || {}, "Inventario");
+    const inventarioActual = findSaldo(datosActuales.activosAgrupados || {}, ["Inventario"]);
+    const inventarioAnterior = findSaldo(datosAnteriores.activosAgrupados || {}, ["Inventario"]);
     f.cambioInventario = inventarioActual - inventarioAnterior;
 
-    const proveedoresActual = findSaldo(datosActuales.pasivosAgrupados || {}, "Proveedores");
-    const proveedoresAnterior = findSaldo(datosAnteriores.pasivosAgrupados || {}, "Proveedores");
+    const proveedoresActual = findSaldo(datosActuales.pasivosAgrupados || {}, ["Proveedores"]);
+    const proveedoresAnterior = findSaldo(datosAnteriores.pasivosAgrupados || {}, ["Proveedores"]);
     f.cambioProveedores = proveedoresActual - proveedoresAnterior;
 
     f.f_operacion = f.utilidadNeta + f.gastoDepreciacion - f.cambioClientes - f.cambioInventario + f.cambioProveedores;
@@ -51,20 +68,21 @@ export const calcularFlujoDeEfectivo = (datosActuales, datosAnteriores) => {
     f.f_inversion = -f.cambioActivosFijos;
 
     // --- 3. FLUJO DE FINANCIACIÓN ---
-    const prestamosActual = findSaldo(datosActuales.pasivosAgrupados || {}, "Documentos por pagar largo plazo");
-    const prestamosAnterior = findSaldo(datosAnteriores.pasivosAgrupados || {}, "Documentos por pagar largo plazo");
+    const prestamosActual = findSaldo(datosActuales.pasivosAgrupados || {}, ["Documentos por pagar largo plazo"]);
+    const prestamosAnterior = findSaldo(datosAnteriores.pasivosAgrupados || {}, ["Documentos por pagar largo plazo"]);
     f.cambioPrestamos = prestamosActual - prestamosAnterior;
 
-    const capitalActual = findSaldo(datosActuales.patrimonio || [], "Capital Social");
-    const capitalAnterior = findSaldo(datosAnteriores.patrimonio || [], "Capital Social");
+    const capitalActual = findSaldo(datosActuales.patrimonio || [], ["Capital Social"]);
+    const capitalAnterior = findSaldo(datosAnteriores.patrimonio || [], ["Capital Social"]);
     f.cambioCapital = capitalActual - capitalAnterior;
 
     f.f_financiacion = f.cambioPrestamos + f.cambioCapital;
 
-    // --- 4. TOTALES Y RECONCILIACIÓN ---
+    // --- 4. TOTALES Y RECONCILIACIÓN (CORREGIDO) ---
     f.flujoNetoTotal = f.f_operacion + f.f_inversion + f.f_financiacion;
-    f.cajaInicial = findSaldo(datosAnteriores.activosAgrupados || {}, "Caja") + findSaldo(datosAnteriores.activosAgrupados || {}, "Banco");
-    f.cajaFinal = findSaldo(datosActuales.activosAgrupados || {}, "Caja") + findSaldo(datosActuales.activosAgrupados || {}, "Banco");
+    // Combinar "Caja" y "Banco" para el efectivo
+    f.cajaInicial = findSaldo(datosAnteriores.activosAgrupados || {}, ["Caja", "Banco"]);
+    f.cajaFinal = findSaldo(datosActuales.activosAgrupados || {}, ["Caja", "Banco"]);
 
     return f;
 };
