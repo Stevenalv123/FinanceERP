@@ -1,4 +1,4 @@
-import { User, LogOut, HardHat, ShoppingCart, Building2, UserCheck, Package, Users, Wallet, Wrench, FileSpreadsheetIcon, ChartColumn, TrendingUp, Bot, Sun, Moon } from "lucide-react"
+import { User, LogOut, HardHat, ShoppingCart, Building2, UserCheck, Package, Users, Wallet, Wrench, FileSpreadsheetIcon, ChartColumn, TrendingUp, Bot, Sun, Moon, Lightbulb } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "../contexts/authcontext"
 import Tabs from "../components/tabs"
@@ -18,6 +18,7 @@ import ActivosFijos from "./activosfijos"
 import Personal from "./personal"
 import EstadosFinancieros from "./estadosfinancieros"
 import AnalisisFinanciero from "./analisisfinanciero"
+import GastosFijos from "./GastosFijos"
 
 export default function Dashboard() {
     const { session } = useAuth();
@@ -33,6 +34,7 @@ export default function Dashboard() {
         { key: 'proveedores', label: 'Proveedores', icon: <Users size={16} /> },
         { key: 'cajabancos', label: 'Cajas/Bancos', icon: <Wallet size={16} /> },
         { key: 'activosFijos', label: 'Activos Fijos', icon: <Wrench size={16} /> },
+        {key: 'gastosFijos', label: 'Gastos Fijos', icon: <Lightbulb size={16} />},
         { key: 'personal', label: 'Personal', icon: <HardHat size={16} /> },
         { key: 'estadosFinancieros', label: 'Estados Financieros', icon: <FileSpreadsheetIcon size={16} /> },
         { key: 'analisis', label: 'Análisis', icon: <ChartColumn size={16} /> },
@@ -112,6 +114,11 @@ export default function Dashboard() {
                     {activeTab === 'activosFijos' && (
                         <>
                             <ActivosFijos />
+                        </>
+                    )}
+                    {activeTab === 'gastosFijos' && (
+                        <>
+                            <GastosFijos />
                         </>
                     )}
                     {activeTab === 'personal' && (
