@@ -1,4 +1,4 @@
-import { X, Wand2, Languages, Search, CheckCircle2, Send, User } from "lucide-react";
+import { X, ChartColumn, DollarSign, Search, TrendingUp, Send, User } from "lucide-react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { generateContent } from "../contexts/model";
 import ReactMarkdown from "react-markdown";
@@ -236,14 +236,14 @@ export default function BotComponent({ onClose }) {
     };
 
     return (
-        <div className="bg-primary border border-secondary rounded-2xl shadow-2xl w-full max-w-md relative flex flex-col" style={{ minHeight: 480 }}>
+        <div className="bg-primary border border-secondary rounded-2xl shadow-2xl w-full max-w-md relative flex flex-col ml-4" style={{ minHeight: 480 }}>
             <div className="flex items-center justify-between p-4 border-b border-secondary">
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-2xl font-bold">
                         <span role="img" aria-label="Bot">🤖</span>
                     </div>
                     <div>
-                        <h2 className="text-title text-lg font-semibold">Nuevo chat con la IA</h2>
+                        <h2 className="text-title text-lg font-semibold">AI Financial</h2>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -254,27 +254,24 @@ export default function BotComponent({ onClose }) {
             <div className="flex-1 p-6 flex flex-col gap-4 overflow-y-auto" style={{ maxHeight: 320 }}>
                 {response.length === 0 && (
                     <>
-                        <h3 className="text-title text-base font-semibold mb-2">Tu IA financiera mejorada</h3>
-                        <p className="text-subtitle text-sm mb-4">Estas son algunas de las cosas que puedo hacer. ¡También puedes preguntarme lo que quieras!</p>
+                        <h3 className="text-title text-base font-semibold mb-2">Tu Asistente Financiero</h3>
+                        <p className="text-subtitle text-sm mb-4">He cargado tus datos financieros. Pregúntame lo que sea sobre tu empresa.</p>
                         <ul className="flex flex-col gap-3">
                             <li className="flex items-center gap-2">
-                                <Wand2 className="text-title w-5 h-5" />
-                                <span>Personaliza la IA financiera</span>
-                                <span className="ml-2 px-2 py-0.5 rounded bg-secondary text-xs text-title">Nuevo</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <Languages className="text-title w-5 h-5" />
-                                <span>Traduce esta página</span>
-                            </li>
-                            <li className="flex items-center gap-2">
                                 <Search className="text-title w-5 h-5" />
-                                <span>Analizar para obtener información</span>
-                                <span className="ml-2 px-2 py-0.5 rounded bg-secondary text-xs text-title">Nuevo</span>
+                                <span>Analiza la salud financiera</span>
                             </li>
                             <li className="flex items-center gap-2">
-                                <CheckCircle2 className="text-title w-5 h-5" />
-                                <span>Crear un registro de tareas</span>
-                                <span className="ml-2 px-2 py-0.5 rounded bg-secondary text-xs text-title">Nuevo</span>
+                                <TrendingUp className="text-title w-5 h-5" />
+                                <span>¿Cuál es mi rentabilidad este mes?</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <DollarSign className="text-title w-5 h-5" />
+                                <span>¿Cuáles son mis gastos más grandes?</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <ChartColumn className="text-title w-5 h-5" />
+                                <span>Compárame con la industria</span>
                             </li>
                         </ul>
                     </>
@@ -336,13 +333,13 @@ export default function BotComponent({ onClose }) {
                         <Send className="text-button w-5 h-5" />
                     </button>
                 </div>
-                <div className="flex gap-2 text-xs text-subtitle">
+                <div className="flex flex-col sm:flex-row justify-between gap-2 text-xs text-subtitle">
                     <span>Automático</span>
                     <span>•</span>
                     <span>Todas las fuentes</span>
                     <button className="ml-auto text-xs text-subtitle hover:text-title" onClick={handleClear}>Limpiar</button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

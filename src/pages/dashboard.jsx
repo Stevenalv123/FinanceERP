@@ -92,7 +92,7 @@ export default function Dashboard() {
 
                         {/* Logo y Título (se oculta en móvil) */}
                         <div className="hidden md:flex">
-                            <img src="LogoFinanceERP.png" alt="Logo" className="h-14 mr-4" />
+                            <img src="/LogoFinanceERP.png" alt="Logo" className="h-14 mr-4" />
                             <div className="flex flex-col">
                                 <h3 className="text-title text-2xl font-bold">Finance ERP</h3>
                                 <span className="text-subtitle text-l">{empresaSeleccionada ? empresaSeleccionada.nombre : "..."}</span>
