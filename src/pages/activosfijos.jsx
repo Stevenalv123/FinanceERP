@@ -7,20 +7,24 @@ import { useActivosFijos } from "../hooks/useActivosFijos";
 
 export default function ActivosFijos() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const {activosFijos} = useActivosFijos();
+    const { activosFijos } = useActivosFijos();
 
+    const totalActivos = activosFijos.length;
+    const valorTotalActivos = activosFijos.reduce((sum, item) => sum + (item.valor_compra || 0), 0);
+    const depreciacionAcumulada = 0;
+    const enMantenimiento = 0;
     return (
         <div>
-            <div className="flex flex-row gap-4 justify-between mt-6">
-                <StatsCards title={"Total Activos"} icon={<Wrench className="text-title" />} value={<span>0</span>} />
-                <StatsCards title={"Valor Actual"} icon={<TrendingDown className="text-title" />} value={`C$0`} />
-                <StatsCards title={"Depreciación Acumulada"} icon={<TrendingDown color="red" />} value={0} />
-                <StatsCards title={"En Mantenimiento"} icon={<Wrench color="orange" className="text-title" />} value={"0"} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                <StatsCards title={"Total Activos"} icon={<Wrench className="text-title" />} value={totalActivos} />
+                <StatsCards title={"Valor (Costo)"} icon={<TrendingDown className="text-title" />} value={`C$${valorTotalActivos.toFixed(2)}`} />
+                <StatsCards title={"Depreciación Acum."} icon={<TrendingDown color="red" />} value={`C$${depreciacionAcumulada.toFixed(2)}`} />
+                <StatsCards title={"En Mantenimiento"} icon={<Wrench color="orange" className="text-title" />} value={enMantenimiento} />
             </div>
 
             <div className="mt-6">
                 <div className="mt-8 border border-secondary rounded-2xl p-5">
-                    <div className="flex flex-row justify-between items-center">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                         <div className="flex flex-col gap-1">
                             <h3 className="text-title text-xl font-bold">Gestión de Activos Fijos</h3>
                             <p className="text-subtitle text-s">Administra los activos fijos y su depreciación</p>
@@ -39,7 +43,7 @@ export default function ActivosFijos() {
                             ))}
                         </div>
                     )}
-                </div>  
+                </div>
             </div>
 
             {isModalOpen && (

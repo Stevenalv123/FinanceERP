@@ -115,7 +115,7 @@ export default function CajasBancos() {
 
     return (
         <div>
-            <div className="flex flex-row gap-4 justify-between mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <StatsCards title={"Saldo en Caja"} icon={<Wallet className="text-title" />} value={`C$0`} />
                 <StatsCards title={"Saldo en Bancos"} icon={<DollarSign className="text-title" />} value={`C$0`} />
                 <StatsCards title={"Ingresos"} icon={<TrendingUp color="green" />} value={"$0"} />
@@ -123,11 +123,11 @@ export default function CajasBancos() {
             </div>
 
             <div className="mt-6">
-                <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} width="20%" />
+                <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} />
                 <div className="mt-8 border border-secondary rounded-2xl p-5">
                     {activeTab === "movimientos" && (
                         <>
-                            <div className="flex flex-row justify-between items-center">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-title text-xl font-bold">Movimientos</h3>
                                     <p className="text-subtitle text-s">Registra ingresos y egresos</p>
@@ -199,7 +199,7 @@ export default function CajasBancos() {
 
                     {activeTab === "cuentasBancarias" && (
                         <>
-                            <div className="flex flex-row justify-between items-center">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-title text-xl font-bold">Movimientos de Bancos</h3>
                                     <p className="text-subtitle text-s">Registra los prestamos y pagos de cuotas</p>

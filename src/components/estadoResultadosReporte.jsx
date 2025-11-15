@@ -99,7 +99,7 @@ export default function EstadoResultadosReporte({
 
     // Encabezados de Columna (7 COLUMNAS)
     const Encabezados = () => (
-        <div className="grid grid-cols-7 items-center py-2 mt-4 border-b border-secondary text-right">
+        <div className="grid grid-cols-7 items-center py-2 mt-4 border-b border-secondary text-right min-w-[700px]">
             <span className="text-sm font-semibold text-title col-span-1 text-left">Cuenta</span>
             <span className="text-sm font-semibold text-title col-span-1">Actual</span>
             <span className="text-sm font-semibold text-title col-span-1">% Actual</span>
@@ -114,7 +114,7 @@ export default function EstadoResultadosReporte({
         <div className="mt-4 rounded-xl border-1 border-secondary p-4 w-full">
             <h1 className="text-green-600 font-semibold text-lg">Ingresos</h1>
             <Encabezados />
-            <div className="mt-2 mb-3">
+            <div className="mt-2 mb-3 min-w-[700px]">
                 {isLoading ? <p>Cargando...</p> : (
                     ingresosAgrupados.map(cuenta => (
                         <CuentaRowComparativa
@@ -142,18 +142,20 @@ export default function EstadoResultadosReporte({
                 )}
             </div>
 
-            <TotalRowComparativa
-                label="UTILIDAD BRUTA"
-                totalActual={utilidadBruta}
-                totalAnterior={utilidadBrutaAnterior}
-                tipo="Resultado" // Tipo especial para que no invierta signo
-                baseVerticalActual={baseVerticalActual}
-                baseVerticalAnterior={baseVerticalAnterior}
-                isMainTotal={true}
-            />
+            <div className="min-w-[700px]">
+                <TotalRowComparativa
+                    label="UTILIDAD BRUTA"
+                    totalActual={utilidadBruta}
+                    totalAnterior={utilidadBrutaAnterior}
+                    tipo="Resultado"
+                    baseVerticalActual={baseVerticalActual}
+                    baseVerticalAnterior={baseVerticalAnterior}
+                    isMainTotal={true}
+                />
+            </div>
 
             <h1 className="text-red-700 font-semibold text-lg mt-4">Gastos Operativos</h1>
-            <div className="mt-2 mb-3">
+            <div className="mt-2 mb-3 min-w-[700px]">
                 {isLoading ? <p>Cargando...</p> : (
                     // --- 4. CORREGIDO: GASTOS ES UN OBJETO AGRUPADO ---
                     Object.entries(gastosAgrupados).map(([subtipoNombre, data]) => {
@@ -184,27 +186,29 @@ export default function EstadoResultadosReporte({
                 />
             </div>
 
-            {/* --- RESULTADO FINAL: UTILIDAD NETA --- */}
-            <TotalRowComparativa
-                label="UTILIDAD ANTES DE IMPUESTOS"
-                totalActual={utilidadAntesDeImpuestos}
-                totalAnterior={utilidadAntesDeImpuestosAnterior}
-                tipo="Resultado"
-                baseVerticalActual={baseVerticalActual}
-                baseVerticalAnterior={baseVerticalAnterior}
-                isMainTotal={true}
-            />
+            <div className="min-w-[700px]"> 
+                <TotalRowComparativa
+                    label="UTILIDAD ANTES DE IMPUESTOS"
+                    totalActual={utilidadAntesDeImpuestos}
+                    totalAnterior={utilidadAntesDeImpuestosAnterior}
+                    tipo="Resultado"
+                    baseVerticalActual={baseVerticalActual}
+                    baseVerticalAnterior={baseVerticalAnterior}
+                    isMainTotal={true}
+                />
 
-            <TotalRowComparativa
-                label="(-) Impuesto Sobre la Renta (30%)"
-                totalActual={impuestoIR}
-                totalAnterior={impuestoIRAnterior}
-                tipo="Gasto"
-                baseVerticalActual={baseVerticalActual}
-                baseVerticalAnterior={baseVerticalAnterior}
-            />
 
-            <div className="bg-secondary/20 p-2 rounded-lg">
+                <TotalRowComparativa
+                    label="(-) Impuesto Sobre la Renta (30%)"
+                    totalActual={impuestoIR}
+                    totalAnterior={impuestoIRAnterior}
+                    tipo="Gasto"
+                    baseVerticalActual={baseVerticalActual}
+                    baseVerticalAnterior={baseVerticalAnterior}
+                />
+            </div>
+
+            <div className="bg-secondary/20 p-2 rounded-lg mt-2 min-w-[700px]">
                 <TotalRowComparativa
                     label="UTILIDAD NETA (O PÉRDIDA)"
                     totalActual={utilidadNeta}

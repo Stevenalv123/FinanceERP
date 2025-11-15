@@ -109,7 +109,7 @@ export default function BalanceGeneralReporte({
 
     // Encabezados de Columna (7 COLUMNAS)
     const Encabezados = () => (
-        <div className="grid grid-cols-7 items-center py-2 mt-4 border-b border-secondary text-right">
+        <div className="grid grid-cols-7 items-center py-2 mt-4 border-b border-secondary text-right min-w-[700px]">
             <span className="text-sm font-semibold text-title col-span-1 text-left">Cuenta</span>
             <span className="text-sm font-semibold text-title col-span-1">Actual</span>
             <span className="text-sm font-semibold text-title col-span-1">% Actual</span>
@@ -126,7 +126,7 @@ export default function BalanceGeneralReporte({
                 <h1 className="text-green-600 font-semibold text-lg">Activos</h1>
                 <p className="text-subtitle">Recursos controlados por la empresa</p>
                 <Encabezados />
-                <div className="mt-2">
+                <div className="mt-2 min-w-[700px]">
                     {isLoading ? <p>Cargando...</p> : (
                         Object.entries(activosAgrupados)
                             .sort(([a], [b]) => getSortIndex(ordenActivos, a) - getSortIndex(ordenActivos, b))
@@ -173,7 +173,7 @@ export default function BalanceGeneralReporte({
                 <h1 className="text-red-700 font-semibold text-lg">Pasivos y Patrimonio</h1>
                 <p className="text-subtitle">Obligaciones y capital de la empresa</p>
                 <Encabezados />
-                <div className="mt-2">
+                <div className="mt-2 min-w-[700px]">
                     {isLoading ? <p>Cargando...</p> : (
                         Object.entries(pasivosAgrupados)
                             .sort(([a], [b]) => getSortIndex(ordenPasivos, a) - getSortIndex(ordenPasivos, b))

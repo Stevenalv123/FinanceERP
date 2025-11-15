@@ -231,51 +231,61 @@ export default function EstadosFinancieros() {
 
     return (
         <div className="p-1 mt-4">
-
-            {/* --- AQUÍ ESTÁN TUS BOTONES --- */}
-            <div className="flex flex-row justify-between items-center">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div className="flex flex-col text-title gap-1 mb-4 ">
                     <h4 className="font-semibold text-xl">Estados Financieros</h4>
                     <p className="text-subtitle">
-                        Empresa: {empresaInfo ? empresaInfo.nombre : 'Cargando...'} | Moneda: {empresaInfo ? empresaInfo.moneda.simbolo : 'N/A'}
+                        Empresa: {empresaInfo ? empresaInfo.nombre : '...'} | Moneda: {empresaInfo ? empresaInfo.moneda.simbolo : '...'}
                     </p>
                 </div>
 
-                <div className="flex flex-row gap-4 justify-center items-center">
-                    <h4 className="font-semibold text-sm">Periodo de inicio:</h4>
-                    <input type="date" className="border-1 p-2 rounded-lg text-sm text-title" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-                    <h4 className="font-semibold text-sm">Periodo de cierre:</h4>
-                    <input type="date" className="border-1 p-2 rounded-lg text-sm text-title" value={fechaCierre} onChange={(e) => setFechaCierre(e.target.value)} />
-                    <button className="bg-button text-button px-4 py-2 rounded-lg font-semibold cursor-pointer text-sm hover:bg-primary-dark transition-colors duration-200 ease-in-out" onClick={() => handleGenerarReporte(true)}>
-                        Generar
-                    </button>
-                    <button
-                        className="bg-yellow-500 text-black px-4 py-2 rounded-lg font-semibold text-sm cursor-pointer hover:bg-yellow-400 transition-colors duration-200 ease-in-out flex items-center gap-2"
-                        onClick={handleRegistrarDepreciacion}
-                        disabled={isProcessing}
-                    >
-                        <Zap size={16} />
-                        {isProcessing ? "Procesando..." : "Registrar Depreciación"}
-                    </button>
-                    <button
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm cursor-pointer hover:bg-green-500 transition-colors duration-200 ease-in-out flex items-center gap-2"
-                        onClick={() => exportFinancialReports(datosActuales, datosAnteriores, empresaInfo, fechaInicio, fechaCierre)}
-                        disabled={isLoading || cuentasActuales.length === 0}
-                    >
-                        <Download size={16} />
-                        Exportar
-                    </button>
+                <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full lg:w-auto">
+                    {/* Inputs de Fecha (se apilan en móvil) */}
+                    <div className="flex flex-col sm:flex-row gap-4 items-center">
+                        <div className="flex flex-col w-full sm:w-auto">
+                            <h4 className="font-semibold text-sm mb-1">Periodo de inicio:</h4>
+                            <input type="date" className="border-1 p-2 rounded-lg text-sm text-title w-full" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+                        </div>
+                        <div className="flex flex-col w-full sm:w-auto">
+                            <h4 className="font-semibold text-sm mb-1">Periodo de cierre:</h4>
+                            <input type="date" className="border-1 p-2 rounded-lg text-sm text-title w-full" value={fechaCierre} onChange={(e) => setFechaCierre(e.target.value)} />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:items-end">
+                        <button className="bg-button text-button px-4 py-2 rounded-lg font-semibold cursor-pointer text-sm" onClick={() => handleGenerarReporte(true)}>
+                            Generar
+                        </button>
+                        <button
+                            className="bg-yellow-500 text-black px-4 py-2 rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
+                            onClick={handleRegistrarDepreciacion}
+                            disabled={isProcessing}
+                        >
+                            <Zap size={16} />
+                            {isProcessing ? "Procesando..." : "Registrar Depreciación"}
+                        </button>
+                        <button
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
+                            onClick={() => exportFinancialReports(datosActuales, datosAnteriores, empresaInfo, fechaInicio, fechaCierre)}
+                            disabled={isLoading || cuentasActuales.length === 0}
+                        >
+                            <Download size={16} />
+                            Exportar
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} width="30%" />
+            <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} />
 
             {activeTab === 'balanceGeneral' && (
-                <BalanceGeneralReporte
-                    isLoading={isLoading}
-                    datosActuales={datosActuales}
-                    datosAnteriores={datosAnteriores}
-                />
+                <div className="mt-4 overflow-x-auto"> 
+                    <BalanceGeneralReporte
+                        isLoading={isLoading}
+                        datosActuales={datosActuales}
+                        datosAnteriores={datosAnteriores}
+                    />
+                </div>
             )}
 
             {activeTab === 'estadoResultados' && (

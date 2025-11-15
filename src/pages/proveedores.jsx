@@ -40,19 +40,19 @@ export default function Proveedores() {
 
     return (
         <div>
-            <div className="flex flex-row gap-4 justify-between mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <StatsCards title={"Total Proveedores"} icon={<span className="icon"><UsersRound className="text-title" /></span>} value={proveedores.length} />
                 <StatsCards title={"Proveedores Activos"} icon={<span className="icon text-green-400"><UsersRound className="text-title" /></span>} value={proveedores.filter(p => p.estado === 1).length} />
                 <StatsCards title={"Cuentas por Pagar"} icon={<span className="icon text-red-400"><DollarSign className="text-title" /></span>} value={formatCurrency(totalCuentasPorPagar)} />
-                <StatsCards title={"Movimientos hoy"} icon={<span className="icon"><ShoppingCart className="text-title" /></span>} value={compras.length} />
+                <StatsCards title={"Compras Registradas"} icon={<span className="icon"><ShoppingCart className="text-title" /></span>} value={compras.length} /> {/* Corregido el label */}
             </div>
 
             <div className="mt-6">
-                <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} width="15%" />
+                <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} />
                 <div className="mt-8 border-1 border-secondary rounded-2xl p-5">
                     {activeTab === "proveedores" && (
                         <>
-                            <div className="flex flex-row justify-between">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-title text-xl font-bold">Gestión de Proveedores</h3>
                                     <p className="text-subtitle text-s">Administra tu cartera de proveedores</p>
@@ -121,7 +121,7 @@ export default function Proveedores() {
 
                     {activeTab === "compras" && (
                         <>
-                            <div className="flex flex-row justify-between">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-title text-xl font-bold">Registro de Compras</h3>
                                     <p className="text-subtitle text-s">Administra tu cartera de proveedores</p>

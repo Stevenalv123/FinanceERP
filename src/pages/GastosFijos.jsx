@@ -1,5 +1,5 @@
 // /pages/GastosFijos.jsx
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { CreditCard, Plus, Zap } from "lucide-react";
 import { useGastosFijos } from "../hooks/useGastosFijos";
 import { format } from "date-fns/format";
@@ -15,7 +15,13 @@ export default function GastosFijos() {
 
     const { gastosFijos, isLoading, isSaving } = useGastosFijos();
 
-
+    const { totalGastos, montoTotal } = useMemo(() => {
+        const monto = gastosFijos.reduce((sum, g) => sum + (g.monto_estimado || 0), 0);
+        return {
+            totalGastos: gastosFijos.length,
+            montoTotal: monto
+        }
+    }, [gastosFijos]);
 
     const handleAbrirPago = (gasto) => {
         setGastoSeleccionado(gasto);
@@ -24,15 +30,15 @@ export default function GastosFijos() {
 
     return (
         <div>
-            <div className="flex flex-row gap-4 justify-between mt-6">
-                <StatsCards title={"Total Gastos Fijos"} icon={<Box className="text-title" />} value={gastosFijos.length} />
-                <StatsCards title={"Total Gastos Fijos"} icon={<DollarSign className="text-title" />} value={`C$ 0`} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                <StatsCards title={"Total Gastos Fijos"} icon={<Box className="text-title" />} value={totalGastos} />
+                <StatsCards title={"Monto Mensual Estimado"} icon={<DollarSign className="text-title" />} value={`C$ ${montoTotal.toFixed(2)}`} />
                 <StatsCards title={"Total Gastos Pagados"} icon={<CircleAlert color="red" />} value={'0'} />
                 <StatsCards title={"Pagos Pendientes"} icon={<TrendingDown className="text-title" />} value={"0"} />
             </div>
 
             <div className="mt-8 border-1 border-secondary rounded-2xl p-5">
-                <div className="flex flex-row justify-between">
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                     <div className="flex flex-col gap-1">
                         <h3 className="text-title text-xl font-bold">Gastos Fijos y Recurrentes</h3>
                         <p className="text-subtitle text-s">Define plantillas para gastos como alquiler, luz, agua, etc.</p>
@@ -79,7 +85,7 @@ export default function GastosFijos() {
                                                 disabled={isSaving}
                                             >
                                                 <CreditCard size={18} />
-                                                </button>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

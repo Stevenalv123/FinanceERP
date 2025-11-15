@@ -6,7 +6,7 @@ import { Box, DollarSign, TrendingDown, CircleAlert, ArrowLeftRight, Plus, Shopp
 import { useClientes } from "../hooks/useClientes";
 import ClientesCards from "../components/clientesCards";
 import { useCuentasPorCobrar } from "../hooks/useCuentasPorCobrar";
-import RegistrarPagoCliente from "../components/registrarPagoCliente"; 
+import RegistrarPagoCliente from "../components/registrarPagoCliente";
 import { format } from "date-fns/format";
 
 export default function Clientes() {
@@ -40,25 +40,21 @@ export default function Clientes() {
         setIsPagoModalOpen(true);
     };
 
-    const totalDeudas = useMemo(() => {
-        return facturasPendientes.reduce((total, factura) => total + factura.saldo_pendiente, 0);
-    }, [facturasPendientes]);
-
     return (
         <div>
-            <div className="flex flex-row gap-4 justify-between mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <StatsCards title={"Total Clientes"} icon={<Box className="text-title" />} value={<span>{clientes.length}</span>} />
-                <StatsCards title={"Cuentas por Cobrar"} icon={<DollarSign className="text-title" />} value={`C$${totalDeudas.toFixed(2)}`} />
+                <StatsCards title={"Cuentas por Cobrar"} icon={<DollarSign className="text-title" />} value={`C$${totalPorCobrar.toFixed(2)}`} />
                 <StatsCards title={"Clientes Morosos"} icon={<CircleAlert color="red" />} value={clientesMorosos} />
                 <StatsCards title={"Pagos Pendientes"} icon={<TrendingDown className="text-title" />} value={"0"} />
             </div>
 
             <div className="mt-6">
-                <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} width="18%" />
+                <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} />
                 <div className="mt-8 border border-secondary rounded-2xl p-5">
                     {activeTab === "clientes" && (
                         <>
-                            <div className="flex flex-row justify-between items-center">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-title text-xl font-bold">Gestión de Clientes</h3>
                                     <p className="text-subtitle text-s">Administra el catálogo de clientes</p>

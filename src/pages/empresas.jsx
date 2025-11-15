@@ -7,7 +7,7 @@ export default function Empresas() {
     const { empresas, isLoading } = useEmpresas();
     const { empresaId, setEmpresaId } = useEmpresa();
 
-    const empresaSeleccionada = empresas.find(e=> e.id_empresa === empresaId)
+    const empresaSeleccionada = empresas.find(e => e.id_empresa === empresaId)
 
     useEffect(() => {
         if (empresas.length > 0 && !empresaSeleccionada) {
@@ -44,7 +44,7 @@ export default function Empresas() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-3 gap-4 mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                         {empresas.map((empresa) => {
                             const isSelected = empresaSeleccionada?.id_empresa === empresa.id_empresa;
                             return (

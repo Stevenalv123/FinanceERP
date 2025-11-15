@@ -18,7 +18,7 @@ export default function Inventario() {
     const { productos = [], isLoading, eliminarProducto, agregarProducto } = useProductos();
 
     const valorTotalInventario = productos.reduce((total, producto) => {
-        if (!producto) return total; 
+        if (!producto) return total;
         return total + (producto.stock * producto.precio_compra);
     }, 0);
 
@@ -52,19 +52,19 @@ export default function Inventario() {
 
     return (
         <div>
-            <div className="flex flex-row gap-4 justify-between mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <StatsCards title={"Total Productos"} icon={<Box className="text-title" />} value={productos.length} />
-                <StatsCards title={"Valor Inventario"} icon={<TrendingUp className="text-title" />} value={`C$${valorTotalInventario}`} />
+                <StatsCards title={"Valor Inventario"} icon={<TrendingUp className="text-title" />} value={`C$${valorTotalInventario.toFixed(2)}`} /> {/* Añadido toFixed(2) */}
                 <StatsCards title={"Stock Bajo"} icon={<CircleAlert color="red" />} value={productos.filter(p => p.stock <= p.stock_minimo).length} />
                 <StatsCards title={"Movimientos hoy"} icon={<TrendingDown className="text-title" />} value={"0"} />
             </div>
 
             <div className="mt-6">
-                <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} width="16%" />
+                <Tabs tabs={tabs} activeKey={activeTab} onChange={setActiveTab} />
                 <div className="mt-8 border border-secondary rounded-2xl p-5">
                     {activeTab === "productos" && (
                         <>
-                            <div className="flex flex-row justify-between items-center">
+                            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-title text-xl font-bold">Gestión de productos</h3>
                                     <p className="text-subtitle text-s">Administra el catálogo de productos del inventario</p>
@@ -108,8 +108,8 @@ export default function Inventario() {
                                                             <td className="py-4 px-4 text-center text-subtitle">C${p.precio_venta.toFixed(2)}</td>
                                                             <td className="py-4 px-4 text-center">
                                                                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${p.stock > p.stock_minimo
-                                                                        ? 'bg-green-600/20 text-green-400'
-                                                                        : 'bg-red-600/20 text-red-400'
+                                                                    ? 'bg-green-600/20 text-green-400'
+                                                                    : 'bg-red-600/20 text-red-400'
                                                                     }`}>
                                                                     {p.stock}
                                                                 </span>
@@ -121,10 +121,10 @@ export default function Inventario() {
                                                             <td className="py-4 px-4">
                                                                 <div className="flex justify-center gap-8">
                                                                     <button title="Editar Producto" className="text-blue-400 hover:text-blue-300 transition-colors transform hover:scale-110 cursor-pointer">
-                                                                        <Pencil size={18}/>
+                                                                        <Pencil size={18} />
                                                                     </button>
                                                                     <button title="Eliminar Producto" className="text-red-500 hover:text-red-400 transition-colors transform hover:scale-110 cursor-pointer" onClick={() => handleEliminarProducto(p.id_producto, p.nombre)}>
-                                                                        <Trash size={18}/>
+                                                                        <Trash size={18} />
                                                                     </button>
                                                                 </div>
                                                             </td>
@@ -145,8 +145,8 @@ export default function Inventario() {
                 <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50 backdrop-blur-sm">
                     <div className="absolute inset-0" onClick={() => setIsModalOpen(false)}></div>
                     <div className="relative z-10 mx-4">
-                        <NuevoProducto onClose={() => setIsModalOpen(false)} 
-                                       onProductoAgregado={agregarProducto}/>
+                        <NuevoProducto onClose={() => setIsModalOpen(false)}
+                            onProductoAgregado={agregarProducto} />
                     </div>
                 </div>
             )}

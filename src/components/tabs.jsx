@@ -34,7 +34,7 @@ export default function Tabs({ tabs = [], activeKey, onChange, width = "100%" })
     return (
         <div
             ref={rootRef}
-            className="relative flex gap-2 p-2 mt-3 bg-secondary rounded-full items-center justify-between"
+            className="relative flex gap-2 p-2 mt-3 bg-secondary rounded-full items-center overflow-x-auto"
             style={{ width }}
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsHovering(true)}
@@ -59,7 +59,7 @@ export default function Tabs({ tabs = [], activeKey, onChange, width = "100%" })
                     key={tab.key}
                     data-key={tab.key}
                     onClick={() => onChange(tab.key)}
-                    className={`tabBtn relative z-20 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-150 cursor-pointer ${activeKey === tab.key ? "text-tab-indicator" : "text-subtitle hover:text-title"
+                    className={`tabBtn relative z-20 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-150 cursor-pointer flex-shrink-0 ${activeKey === tab.key ? "text-tab-indicator" : "text-subtitle hover:text-title"
                         }`}
                 >
                     {tab.icon}
