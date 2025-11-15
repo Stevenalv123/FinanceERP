@@ -132,8 +132,18 @@ export default function Dashboard() {
                     </div>
 
                     {showBot && (
-                        <div className="fixed bottom-28 right-8 z-50">
-                            <BotComponent onClose={() => setShowBot(false)} />
+                        <div
+                            // Móvil: Fondo oscuro, centrado
+                            className="fixed inset-0 flex items-center justify-center bg-black/70 z-50 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none md:items-end md:justify-end"
+                            onClick={() => setShowBot(false)}
+                        >
+                            <div
+                                // Móvil: Centrado con margen | Desktop: Posición fija en la esquina
+                                className="relative z-10 mx-4 md:mx-0 md:fixed md:bottom-28 md:right-8"
+                                onClick={(e) => e.stopPropagation()} // Evita que el clic en el modal cierre el fondo
+                            >
+                                <BotComponent onClose={() => setShowBot(false)} />
+                            </div>
                         </div>
                     )}
 

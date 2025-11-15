@@ -236,7 +236,7 @@ export default function BotComponent({ onClose }) {
     };
 
     return (
-        <div className="bg-primary border border-secondary rounded-2xl shadow-2xl w-full max-w-md relative flex flex-col ml-4" style={{ minHeight: 480 }}>
+        <div className="bg-primary border border-secondary rounded-2xl shadow-2xl w-full max-w-md relative flex flex-col" style={{ minHeight: 480 }}>
             <div className="flex items-center justify-between p-4 border-b border-secondary">
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-2xl font-bold">
