@@ -7,7 +7,7 @@ import { toast } from "react-hot-toast";
 import BalanceGeneralReporte from "../components/balanceGeneralReporte";
 import EstadoResultadosReporte from "../components/estadoResultadosReporte";
 import FlujoEfectivoReporte from "../components/flujoEfectivoReporte";
-import usePersistentState from "../hooks/usePersistantState";
+import usePersistentState from "../hooks/usePersistentState";
 
 const getTodayString = () => {
     const today = new Date();

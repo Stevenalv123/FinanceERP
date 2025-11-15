@@ -1,15 +1,168 @@
 import { X, Wand2, Languages, Search, CheckCircle2, Send, User } from "lucide-react";
-import { useState } from "react";
-import { generateContent } from "../contexts/model"; 
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { generateContent } from "../contexts/model";
 import ReactMarkdown from "react-markdown";
 
-const systemPrompt = "You are FinanceBot, a specialized AI financial analyst. Your primary purpose is to provide data-driven financial analysis and support to business owners based exclusively on the data from their internal management system. Your tone must be professional, objective, and insightful. You are an expert assistant, not just a calculator. Core Directives: Analyze Provided Data: When the user provides structured data (e.g., sales records, expense lists, inventory levels, client data), your task is to analyze it thoroughly. Provide a Financial Health Summary: The user will ask for an analysis or status report. You must synthesize all provided data into a clear, high-level summary of the companys financial state. Identify Key Insights & Trends: Do not just list numbers. Tell the user what the numbers mean. Identify sales trends, top-performing products, significant expense categories, and potential areas of concern. Answer Financial Questions: Answer specific questions (e.g., What was my net profit last month?, Who is my most valuable customer?) by calculating the answer from the provided data. Key Analysis Areas: When asked for a general analysis, you should focus on: Profitability: Calculate Total Revenue (from sales). Calculate Total Costs/Expenses (from expense data). Calculate Net Profit (Revenue - Expenses) and Profit Margin. Sales Performance: Identify top-selling products (by revenue and by quantity). Identify sales trends (e.g., Sales increased by X% compared to the previous period.). Calculate Average Order Value (AOV). Expense Analysis: Identify the largest expense categories. Highlight any unusual or significantly high spending. Customer Insights: Identify top customers by total spending. Report on the number of new vs. returning customers, if data is available. Output Format: Start with an Executive Summary: Always begin your analysis with a 2-3 sentence high-level summary. Example: Based on the data from Period your company's financial health is [strong/stable/showing challenges]. You generated C$X in total revenue with a net profit of C$Y. Use Clear Sections: Structure your detailed analysis with clear headings (e.g., ## Profitability, ## Sales Highlights, ## Expense Breakdown). Be Data-Driven: Use specific numbers, percentages, and comparisons to support every insight. Critical Constraints: NEVER Hallucinate: Do not invent numbers or data. If the information is not in the data provided, state that you cannot complete the calculation. Example: I can provide your total revenue, but I cannot calculate net profit as no expense data was provided. No External Advice: Do not provide personalized, external financial advice (e.g., You should invest in the stock market or get a business loan). Your advice must be strictly related to the businesss internal operations based on the data e.g. You may want to review your Supplies spending, as it has increased by 40%. Assume Data is Correct: You must trust the data provided by the users system and base all your analysis on it. If they ask you for financial information, give it them a professional answer with easy words to help them to understand the financial concepts.";
+// --- Hooks y helpers de datos ---
+import { useEmpresa } from "../contexts/empresacontext";
+import { supabase } from "../supabase/supabaseclient";
+import { toast } from "react-hot-toast";
+import usePersistentState from "../hooks/usePersistentState";
+
+const systemPrompt = `Eres FinanceBot, un analista financiero experto de IA. Tu propósito es proporcionar análisis basados en datos y apoyo a los dueños de negocios, basándote *exclusivamente* en los datos de su sistema interno. Tu tono debe ser profesional, objetivo y perspicaz.
+Directivas Principales:
+1.  **Analiza los Datos Proporcionados**: Se te proporcionará un bloque de 'Contexto de Datos' que contiene los ratios financieros clave de la empresa. Debes usar *exclusivamente* estos datos.
+2.  **Resume la Salud Financiera**: Cuando el usuario pida un análisis ("¿cómo está mi empresa?"), sintetiza los datos del 'Contexto de Datos' en un resumen claro de alto nivel.
+3.  **Identifica Perspectivas Clave**: No te limites a listar números. Explica qué significan. Identifica fortalezas (ej. "Tu liquidez es excelente") y preocupaciones (ej. "Tu rentabilidad está por debajo del promedio de la industria").
+4.  **Sé Basado en Datos**: Usa números específicos del contexto para respaldar cada afirmación.
+
+Restricciones Críticas:
+-   **NUNCA ALUCINES**: No inventes números o datos. Si la información no está en el 'Contexto de Datos' (ej. "flujo de caja histórico"), indica que no puedes proporcionar ese análisis específico.
+-   **SIN CONSEJOS EXTERNOS**: No des consejos financieros personalizados (ej. "deberías invertir en acciones"). Tu consejo debe estar estrictamente relacionado con los datos internos (ej. "Tu rotación de inventario es lenta, considera estrategias para mover el stock más rápido").
+`;
+
+const getTodayString = () => {
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    return today.toISOString().split('T')[0];
+}
+
+const findSaldo = (cuentas, nombres) => {
+    const nombresLower = nombres.map(n => n.toLowerCase());
+    let total = 0;
+    cuentas.forEach(cuenta => {
+        if (nombresLower.includes(cuenta.cuenta?.toLowerCase())) {
+            total += cuenta.saldo;
+        }
+    });
+    return total;
+};
+
+const INDUSTRY_AVERAGES = {
+    liquidezCorriente: 1.75,
+    endeudamiento: 0.4, // 40%
+    roe: 15.0, // 15%
+};
 
 export default function BotComponent({ onClose }) {
     const [userInput, setUserInput] = useState('');
-    
-    const [response, setResponse] = useState([]); 
+    const [response, setResponse] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // --- 1. LÓGICA DE DATOS FINANCIEROS ---
+    const [cuentasActuales, setCuentasActuales] = useState([]);
+    const [cuentasAnteriores, setCuentasAnteriores] = useState([]);
+    const { empresaId } = useEmpresa();
+    const [fechaInicio] = usePersistentState('finance_erp_fecha_inicio', getTodayString());
+    const [fechaCierre] = usePersistentState('finance_erp_fecha_cierre', getTodayString());
+
+    const fetchFinancialData = useCallback(async () => {
+        if (!empresaId || !fechaInicio || !fechaCierre) return;
+
+        let fechaAnterior = new Date(fechaInicio);
+        fechaAnterior.setDate(fechaAnterior.getDate() - 1);
+        const fechaInicioReporte = fechaAnterior.toISOString().split('T')[0];
+
+        try {
+            // Carga datos del balance anterior
+            const { data: dataAnterior, error: errorAnterior } = await supabase.rpc('sp_get_balance_as_of_date', {
+                p_id_empresa: empresaId, p_fecha_corte: fechaInicioReporte
+            });
+            if (errorAnterior) throw errorAnterior;
+            setCuentasAnteriores(dataAnterior || []);
+
+            // Carga datos del balance actual
+            const { data: dataActual, error: errorActual } = await supabase.rpc('sp_get_balance_as_of_date', {
+                p_id_empresa: empresaId, p_fecha_corte: fechaCierre
+            });
+            if (errorActual) throw errorActual;
+            setCuentasActuales(dataActual || []);
+        } catch (error) {
+            console.error("Error cargando datos para el Bot:", error.message);
+        }
+    }, [empresaId, fechaInicio, fechaCierre]);
+
+    // Carga los datos financieros tan pronto como se abre el modal
+    useEffect(() => {
+        fetchFinancialData();
+    }, [fetchFinancialData]);
+
+    // --- 2. LÓGICA DE CÁLCULO DE RATIOS ---
+    const financialData = useMemo(() => {
+        const calcularRatios = (cuentas) => {
+            // ... (toda la lógica de 'calcularRatios' de AnalisisFinanciero.jsx)
+            const activos = cuentas.filter(c => c.tipo === 'Activo');
+            const pasivos = cuentas.filter(c => c.tipo === 'Pasivo');
+            const patrimonioCuentas = cuentas.filter(c => c.tipo === 'Patrimonio');
+            const ingresos = cuentas.filter(c => c.tipo === 'Ingreso');
+            const costos = cuentas.filter(c => c.tipo === 'Costo');
+            const gastos = cuentas.filter(c => c.tipo === 'Gasto');
+            const totalVentas = Math.abs(findSaldo(ingresos, ["Ventas"]));
+            const totalCostosVenta = findSaldo(costos, ["Costo de Venta"]);
+            const utilidadBruta = totalVentas - totalCostosVenta;
+            const totalGastosOp = findSaldo(gastos, ["Gasto por Depreciación", "Otros Gastos"]);
+            const utilidadOperativa = utilidadBruta - totalGastosOp;
+            const impuestoIR = utilidadOperativa > 0 ? utilidadOperativa * 0.3 : 0;
+            const utilidadNeta = utilidadOperativa - impuestoIR;
+            const totalActivoCorriente = activos.filter(c => c.subtipo === 'Activo Corriente').reduce((sum, c) => sum + c.saldo, 0);
+            const totalActivoNoCorriente = activos.filter(c => c.subtipo === 'Activo No Corriente').reduce((sum, c) => sum + c.saldo, 0);
+            const totalActivos = totalActivoCorriente + totalActivoNoCorriente;
+            const totalPasivoCorriente = Math.abs(pasivos.filter(c => c.subtipo === 'Pasivo Corriente').reduce((sum, c) => sum + c.saldo, 0));
+            const totalPasivoNoCorriente = Math.abs(pasivos.filter(c => c.subtipo === 'Pasivo No Corriente').reduce((sum, c) => sum + c.saldo, 0));
+            const totalPasivos = totalPasivoCorriente + totalPasivoNoCorriente;
+            const totalPatrimonioCuentas = Math.abs(patrimonioCuentas.reduce((sum, c) => sum + c.saldo, 0));
+            const totalPatrimonio = totalPatrimonioCuentas;
+            const inventario = findSaldo(activos, ["Inventario"]);
+            const cxc = findSaldo(activos, ["Clientes"]);
+            const cxcProveedores = Math.abs(findSaldo(pasivos, ["Proveedores"]));
+            const activosFijosNetos = totalActivoNoCorriente;
+            return {
+                totalVentas, totalCostosVenta, utilidadBruta, utilidadOperativa, utilidadNeta,
+                totalActivoCorriente, totalActivos, totalPasivoCorriente, totalPasivos, totalPatrimonio,
+                inventario, cxc, cxcProveedores, activosFijosNetos
+            };
+        };
+
+        if (cuentasActuales.length === 0) {
+            return { error: "No hay datos cargados." }; // Retorno simple si no hay datos
+        }
+
+        const actualYTD = calcularRatios(cuentasActuales);
+        const anteriorYTD = calcularRatios(cuentasAnteriores);
+        const periodoVentas = actualYTD.totalVentas - anteriorYTD.totalVentas;
+        const periodoUtilidadNeta = actualYTD.utilidadNeta - anteriorYTD.utilidadNeta;
+        const d = (den) => (den === 0 ? 0 : den);
+        const liquidezCorriente = actualYTD.totalActivoCorriente / d(actualYTD.totalPasivoCorriente);
+        const endeudamiento = actualYTD.totalPasivos / d(actualYTD.totalActivos);
+        const margenNeto = (periodoUtilidadNeta / d(periodoVentas)) * 100;
+        const roe = (periodoUtilidadNeta / d(actualYTD.totalPatrimonio)) * 100;
+        const score = (valor, optimo) => Math.max(0, 100 - (Math.abs(valor - optimo) / optimo) * 100);
+        const liquidezScore = score(liquidezCorriente, INDUSTRY_AVERAGES.liquidezCorriente);
+        const endeudamientoScore = score(endeudamiento, INDUSTRY_AVERAGES.endeudamiento);
+        const rentabilidadScore = score(roe, INDUSTRY_AVERAGES.roe);
+        const generalScore = (liquidezScore + endeudamientoScore + rentabilidadScore) / 3;
+        const getStatus = (score) => {
+            if (score > 90) return "Excelente";
+            if (score > 75) return "Saludable";
+            if (score > 50) return "Aceptable";
+            return "Riesgo";
+        };
+        const generalStatus = getStatus(generalScore);
+        const liquidezStatus = getStatus(liquidezScore);
+        const endeudamientoStatus = getStatus(endeudamientoScore);
+        const rentabilidadStatus = getStatus(rentabilidadScore);
+
+        return {
+            error: null,
+            generalScore, generalStatus,
+            liquidezCorriente, liquidezStatus,
+            endeudamiento, endeudamientoStatus,
+            margenNeto, roe, rentabilidadStatus,
+            totalVentas: periodoVentas,
+            utilidadNeta: periodoUtilidadNeta
+        };
+    }, [cuentasActuales, cuentasAnteriores]);
+
 
     const handleUserInput = (e) => {
         setUserInput(e.target.value);
@@ -22,15 +175,34 @@ export default function BotComponent({ onClose }) {
     };
 
     const handleSubmit = async () => {
-        if (!userInput.trim()) {
-            return;
-        }
+        if (!userInput.trim()) return;
 
         const newUserMessage = { type: "user", message: userInput };
         const currentChatHistory = [...response, newUserMessage];
         setResponse(currentChatHistory);
         setUserInput('');
         setIsLoading(true);
+
+        // --- 3. CREA EL CONTEXTO DE DATOS PARA LA IA ---
+        let dataContext = "--- INICIO DE DATOS FINANCIEROS (CONFIDENCIAL) ---\n";
+        if (financialData.error) {
+            dataContext += `Estado: Error. Los datos financieros no pudieron ser calculados. Fechas seleccionadas: ${fechaInicio} a ${fechaCierre}. Informa al usuario que debe generar los reportes primero en la pestaña 'Estados Financieros'.\n`;
+        } else {
+            dataContext += `
+            Fechas del Reporte: ${fechaInicio} a ${fechaCierre}
+            Puntuación General: ${financialData.generalScore.toFixed(0)}/100 (${financialData.generalStatus})
+            DATOS DEL PERÍODO:
+            - Ventas Totales: C$ ${financialData.totalVentas.toFixed(2)}
+            - Utilidad Neta: C$ ${financialData.utilidadNeta.toFixed(2)}
+            RATIOS CLAVE:
+            - Liquidez Corriente: ${financialData.liquidezCorriente.toFixed(2)} (Estado: ${financialData.liquidezStatus})
+            - Nivel de Endeudamiento: ${(financialData.endeudamiento * 100).toFixed(1)}% (Estado: ${financialData.endeudamientoStatus})
+            - Margen Neto: ${financialData.margenNeto.toFixed(1)}%
+            - ROE (Retorno s/ Patrimonio): ${financialData.roe.toFixed(1)}% (Estado: ${financialData.rentabilidadStatus})
+        `;
+        }
+        dataContext += "--- FIN DE DATOS FINANCIEROS ---";
+        // --- FIN DEL CONTEXTO ---
 
         const historyString = currentChatHistory
             .map(msg => {
@@ -39,9 +211,10 @@ export default function BotComponent({ onClose }) {
                 return '';
             })
             .join('\n');
-        
-        const fullPrompt = `${systemPrompt}\n\n--- Historial de Conversación ---\n${historyString}`;
-        
+
+        // --- 4. INYECTA EL CONTEXTO EN EL PROMPT ---
+        const fullPrompt = `${systemPrompt}\n\n${dataContext}\n\n--- Historial de Conversación ---\n${historyString}`;
+
         try {
             const res = await generateContent(fullPrompt);
             const botMessage = { type: "bot", message: res };
@@ -109,15 +282,15 @@ export default function BotComponent({ onClose }) {
                 {response.map((msg, idx) => (
                     <div key={idx} className={
                         msg.type === "user"
-                            ? "flex items-start gap-2 justify-end" 
-                            : "flex items-start gap-2" 
+                            ? "flex items-start gap-2 justify-end"
+                            : "flex items-start gap-2"
                     }>
                         {msg.type === "bot" && (
                             <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
                                 <span role="img" aria-label="Bot">🤖</span>
                             </div>
                         )}
-                        
+
                         <div className={
                             msg.type === "user"
                                 ? "bg-input rounded-xl px-4 py-2 text-title text-base font-medium max-w-[80%]"
@@ -140,9 +313,9 @@ export default function BotComponent({ onClose }) {
                 ))}
                 {isLoading && (
                     <div className="flex items-center gap-2 animate-pulse">
-                         <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                             <span role="img" aria-label="Bot">🤖</span>
-                         </div>
+                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                            <span role="img" aria-label="Bot">🤖</span>
+                        </div>
                         <span className="text-subtitle">Pensando...</span>
                     </div>
                 )}

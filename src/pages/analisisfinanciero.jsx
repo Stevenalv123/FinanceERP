@@ -11,7 +11,7 @@ import { useMemo, useState, useCallback, useEffect } from "react";
 import { useEmpresa } from "../contexts/empresacontext";
 import { supabase } from "../supabase/supabaseclient";
 import { toast } from "react-hot-toast";
-import usePersistentState from "../hooks/usePersistantState"; // <-- Nombre corregido
+import usePersistentState from "../hooks/usePersistentState"; // <-- Nombre corregido
 
 // --- PARÁMETROS DE LA INDUSTRIA (Basado en tu Formulario) ---
 const INDUSTRY_AVERAGES = {
