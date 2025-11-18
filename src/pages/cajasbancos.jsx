@@ -1,7 +1,7 @@
 import StatsCards from "../components/statscards";
 import Tabs from "../components/tabs";
 import NuevoMovCajas from "../components/nuevomovcajas";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { TrendingUp, TrendingDown, Plus, Pencil, Trash, DollarSign, Banknote, Wallet, CreditCard } from "lucide-react";
 import { useCajasBancos } from "../hooks/useCajasBancos";
 import Swal from "sweetalert2";
@@ -9,16 +9,20 @@ import { toast } from "react-hot-toast";
 import { format } from "date-fns/format"
 import { usePrestamos } from "../hooks/usePrestamos";
 import NuevoPrestamoModal from "../components/nuevoPrestamoModal";
+import ModalSaldoInicial from "../components/modalSaldoInicial";
+import {supabase} from "../supabase/supabaseclient";
+import { useEmpresa } from "../contexts/empresacontext";
 
 export default function CajasBancos() {
     const tabs = [
         { key: "movimientos", label: "Movimientos", icon: <DollarSign size={16} /> },
         { key: "cuentasBancarias", label: "Cuentas Bancarias", icon: <Banknote size={16} /> }
     ];
-
+    const { empresaId } = useEmpresa();
     const [activeTab, setActiveTab] = useState("movimientos");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPrestamoModalOpen, setIsPrestamoModalOpen] = useState(false);
+    const [isSaldoInicialOpen, setIsSaldoInicialOpen] = useState(false);
     const {
         prestamos,
         isLoading: isLoadingPrestamos,
@@ -34,6 +38,61 @@ export default function CajasBancos() {
         eliminarMovimiento,
         isDeletingMov
     } = useCajasBancos();
+
+    const [saldos, setSaldos] = useState({ caja: 0, banco: 0 });
+
+    // --- 2. EFECTO PARA CARGAR SALDOS REALES ---
+    useEffect(() => {
+        const fetchSaldos = async () => {
+            if (!empresaId) return;
+            const today = new Date().toISOString().split('T')[0];
+
+            try {
+                // Reusamos la función de balance para obtener el saldo al día de hoy
+                const { data, error } = await supabase.rpc('sp_get_balance_as_of_date', {
+                    p_id_empresa: empresaId,
+                    p_fecha_corte: today
+                });
+
+                if (error) throw error;
+
+                if (data) {
+                    // Filtramos por nombre para encontrar Caja y Banco
+                    const saldoCaja = data.find(c => c.cuenta.toLowerCase().includes('caja'))?.saldo || 0;
+                    // Sumamos todas las cuentas que parezcan bancos
+                    const saldoBanco = data
+                        .filter(c => c.cuenta.toLowerCase().includes('banco'))
+                        .reduce((sum, c) => sum + c.saldo, 0);
+
+                    setSaldos({ caja: saldoCaja, banco: saldoBanco });
+                }
+            } catch (err) {
+                console.error("Error al cargar saldos:", err);
+            }
+        };
+
+        fetchSaldos();
+    }, [empresaId, movimientos]);
+
+    const { totalIngresos, totalEgresos } = useMemo(() => {
+        return movimientos.reduce((acc, mov) => {
+            const esEfectivo = ['Caja', 'Banco', 'Bancos', 'Caja General'].some(nombre => 
+                mov.cuentas_empresa?.nombre?.includes(nombre)
+            );
+
+            // Solo sumamos si el movimiento afectó a una cuenta de efectivo
+            if (esEfectivo) {
+                if (mov.tipo === 'DEBE') {
+                    acc.totalIngresos += mov.monto;
+                } else {
+                    acc.totalEgresos += mov.monto;
+                }
+            }
+            return acc;
+        }, { totalIngresos: 0, totalEgresos: 0 });
+    }, [movimientos]);
+
+    const formatMoney = (amount) => `C$ ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const handleEliminarMovimiento = async (id, descripcion) => {
         const descText = descripcion || "este movimiento";
@@ -116,10 +175,10 @@ export default function CajasBancos() {
     return (
         <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                <StatsCards title={"Saldo en Caja"} icon={<Wallet className="text-title" />} value={`C$0`} />
-                <StatsCards title={"Saldo en Bancos"} icon={<DollarSign className="text-title" />} value={`C$0`} />
-                <StatsCards title={"Ingresos"} icon={<TrendingUp color="green" />} value={"$0"} />
-                <StatsCards title={"Egresos"} icon={<TrendingDown color="red" className="text-title" />} value={"$0"} />
+                <StatsCards title={"Saldo en Caja"} icon={<Wallet className="text-title" />} value={formatMoney(saldos.caja)} />
+                <StatsCards title={"Saldo en Bancos"} icon={<DollarSign className="text-title" />} value={formatMoney(saldos.banco)} />
+                <StatsCards title={"Ingresos"} icon={<TrendingUp color="green" />} value={formatMoney(totalIngresos)} />
+                <StatsCards title={"Egresos"} icon={<TrendingDown color="red" className="text-title" />} value={formatMoney(totalEgresos)} />
             </div>
 
             <div className="mt-6">
@@ -132,9 +191,18 @@ export default function CajasBancos() {
                                     <h3 className="text-title text-xl font-bold">Movimientos</h3>
                                     <p className="text-subtitle text-s">Registra ingresos y egresos</p>
                                 </div>
-                                <button className="btn-new bg-button text-button flex flex-row h-10 text-s gap-3 p-2 rounded-xl items-center cursor-pointer hover:opacity-95 hover:scale-110 transition" onClick={() => setIsModalOpen(true)}>
-                                    <span className="icon"><Plus /></span> Nuevo Movimiento
-                                </button>
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <button
+                                        onClick={() => setIsSaldoInicialOpen(true)}
+                                        className="text-yellow-500 hover:text-yellow-400 text-sm flex items-center gap-2 border border-yellow-500/30 px-3 py-1 rounded-lg"
+                                    >
+                                        + Registrar Saldo Inicial (Capital)
+                                    </button>
+                                    <button className="btn-new bg-button text-button flex flex-row h-10 text-s gap-3 p-2 rounded-xl items-center cursor-pointer hover:opacity-95 hover:scale-110 transition" onClick={() => setIsModalOpen(true)}>
+                                        <span className="icon"><Plus /></span> Nuevo Movimiento
+                                    </button>
+                                </div>
+
                             </div>
 
                             <div className="mt-8 overflow-x-auto">
@@ -303,6 +371,10 @@ export default function CajasBancos() {
                         />
                     </div>
                 </div>
+            )}
+
+            {isSaldoInicialOpen && (
+                <ModalSaldoInicial onClose={() => setIsSaldoInicialOpen(false)} />
             )}
         </div>
     );

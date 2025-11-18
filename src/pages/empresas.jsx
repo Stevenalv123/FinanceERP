@@ -1,11 +1,14 @@
 import { Building2, Plus, SquarePen, Trash } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useEmpresas } from "../hooks/useEmpresas"
 import { useEmpresa } from "../contexts/empresacontext"
+import NuevaEmpresaModal from "../components/nuevaEmpresaModal"
+import Swal from "sweetalert2"
 
 export default function Empresas() {
-    const { empresas, isLoading } = useEmpresas();
+    const { empresas, isLoading, eliminarEmpresa } = useEmpresas();
     const { empresaId, setEmpresaId } = useEmpresa();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const empresaSeleccionada = empresas.find(e => e.id_empresa === empresaId)
 
@@ -15,6 +18,31 @@ export default function Empresas() {
         }
     }, [empresas, empresaId, setEmpresaId])
 
+    const handleDelete = async (e, id, nombre) => {
+        e.stopPropagation(); // Evita que se seleccione la empresa al hacer click en borrar
+        
+        Swal.fire({
+            title: '¿Eliminar Empresa?',
+            text: `Estás a punto de borrar "${nombre}" y TODOS sus datos (ventas, contabilidad, inventario). Esta acción no se puede deshacer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar todo',
+            cancelButtonText: 'Cancelar',
+            background: '#1a1a1a', // Ajusta a tu tema oscuro
+            color: '#ffffff'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const { success } = await eliminarEmpresa(id);
+                // Si borramos la empresa actual, limpiamos el contexto o seleccionamos otra
+                if (success && id === empresaId) {
+                    setEmpresaId(null); 
+                }
+            }
+        });
+    };
+
     return (
         <>
             <div className="flex flex-row justify-between mt-4">
@@ -22,7 +50,7 @@ export default function Empresas() {
                     <h3 className="text-title text-2xl font-bold">Gestión de Empresas</h3>
                     <p className="text-subtitle">Administra las empresas y selecciona una para trabajar</p>
                 </div>
-                <button className="bg-button flex flex-row h-10 text-button text-l gap-3 p-2 rounded-xl items-center hover:opacity-95 transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer">
+                <button className="bg-button flex flex-row h-10 text-button text-l gap-3 p-2 rounded-xl items-center hover:opacity-95 transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer" onClick={() => setIsModalOpen(true)}>
                     <Plus />
                     Nueva empresa
                 </button>
@@ -38,7 +66,7 @@ export default function Empresas() {
                         <span className="icon"><Building2 size={64} /></span>
                         <h3 className="text-title text-xl">No hay empresas registradas</h3>
                         <p className="text-subtitle text-s">Crea tu primera empresa para empezar a gestionarla</p>
-                        <button className="btn-new flex flex-row h-10 text-l gap-3 p-1 rounded-xl items-center hover:opacity-95 transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer">
+                        <button className="btn-new bg-button text-button flex flex-row h-10 text-l gap-3 p-1 rounded-xl items-center hover:opacity-95 transition-transform duration-200 ease-in-out hover:scale-110 cursor-pointer" onClick={() => setIsModalOpen(true)}>
                             <span className="icon"><Plus /></span>
                             Crear primera empresa
                         </button>
@@ -57,7 +85,7 @@ export default function Empresas() {
                                             <button className="hover:bg-blue-800 cursor-pointer rounded-4xl p-2 transition-transform duration-200 ease-in-out hover:scale-110">
                                                 <span className="icon"><SquarePen size={18} /></span>
                                             </button>
-                                            <button className="hover:bg-[#96030C] cursor-pointer rounded-4xl p-2 transition-transform duration-200 ease-in-out hover:scale-110">
+                                            <button className="hover:bg-[#96030C] cursor-pointer rounded-4xl p-2 transition-transform duration-200 ease-in-out hover:scale-110" onClick={(e) => handleDelete(e, empresa.id_empresa, empresa.nombre)}>
                                                 <span className="icon"><Trash size={18} /></span>
                                             </button>
                                         </div>
@@ -86,6 +114,10 @@ export default function Empresas() {
                 )
                 }
             </div>
+
+            {isModalOpen && (
+                <NuevaEmpresaModal onClose={() => setIsModalOpen(false)} />
+            )}
         </>
     )
 }

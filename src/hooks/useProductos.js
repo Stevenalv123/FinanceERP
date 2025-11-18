@@ -211,6 +211,27 @@ export function useProductos() {
         }
     };
 
+    // En useProductos.js
+    const generarAsientoInicial = async () => {
+        setIsLoading(true); // Reusa tu estado de loading
+        try {
+            const { data, error } = await supabase.rpc('sp_generar_asiento_apertura_inventario', {
+                p_id_empresa: empresaId // <-- Aquí pasas el ID dinámicamente
+            });
+            if (error) throw error;
+
+            if (data === true) {
+                toast.success("✅ Asiento de apertura generado correctamente.");
+            } else {
+                toast.info("No había inventario para registrar o el valor era 0.");
+            }
+        } catch (error) {
+            toast.error(`Error: ${error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const eliminarProducto = async (idProducto) => {
     };
 
@@ -220,6 +241,7 @@ export function useProductos() {
         error,
         setProductos,
         agregarProducto,
+        generarAsientoInicial,
         eliminarProducto
     };
 }

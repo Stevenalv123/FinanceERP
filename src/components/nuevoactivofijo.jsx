@@ -6,7 +6,14 @@ import { useEmpleados } from "../hooks/useEmpleados";
 
 export default function NuevoActivoFijo({ onClose, totalActivos }) {
     const { empleados, isLoading: isLoadingEmpleados } = useEmpleados();
-    const { addActivoFijo, cuentasActivo, cuentasGasto, isSaving } = useActivosFijos();
+    const { 
+        addActivoFijo, 
+        cuentasActivoFijo, // Para el tipo de activo
+        cuentasGasto,      // Para la depreciación
+        cuentasPago,       // Para pagar
+        isSaving 
+    } = useActivosFijos();
+    const [idCuentaPago, setIdCuentaPago] = useState("");
     const [idCuentaActivo, setIdCuentaActivo] = useState('');
     const [codigo, setCodigo] = useState('');
     const [nombre, setNombre] = useState('');
@@ -51,7 +58,8 @@ export default function NuevoActivoFijo({ onClose, totalActivos }) {
             estado,
             valor_residual: Number(valorResidual),
             id_cuenta_gasto_depreciacion: Number(idCuentaGasto),
-            id_cuenta_depreciacion_acumulada: Number(idCuentaDepAcum)
+            id_cuenta_depreciacion_acumulada: Number(idCuentaDepAcum),
+            id_cuenta_pago: Number(idCuentaPago)
         };
 
         const result = await addActivoFijo(nuevoActivo);
@@ -89,6 +97,21 @@ export default function NuevoActivoFijo({ onClose, totalActivos }) {
                         </div>
 
                         <div className="flex flex-col gap-2">
+                            <label>Método de Pago (Origen de fondos)</label>
+                            <select
+                                value={idCuentaPago}
+                                onChange={e => setIdCuentaPago(e.target.value)}
+                                className="bg-input border border-secondary rounded-lg p-3"
+                                required
+                            >
+                                <option value="">Seleccione...</option>
+                                {cuentasPago.map(c => (
+                                    <option key={c.id_cuenta} value={c.id_cuenta}>{c.nombre}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
                             <label className="text-sm font-medium text-title">Cuenta de Activo (Categoría)</label>
                             <select value={idCuentaActivo} onChange={e => setIdCuentaActivo(e.target.value)} className="bg-input border border-secondary rounded-lg p-3" required >
 
@@ -96,7 +119,7 @@ export default function NuevoActivoFijo({ onClose, totalActivos }) {
 
                                 {/* --- CAMBIO 2 --- */}
                                 {/* Mapea sobre 'cuentasActivo' (del hook), no 'cuentasDeActivo' */}
-                                {cuentasActivo && cuentasActivo.map(cuenta => (
+                                {cuentasActivoFijo && cuentasActivoFijo.map(cuenta => (
                                     <option key={cuenta.id_cuenta} value={cuenta.id_cuenta}>
                                         {cuenta.nombre}
                                     </option>
@@ -121,7 +144,7 @@ export default function NuevoActivoFijo({ onClose, totalActivos }) {
                             <select value={idCuentaDepAcum} onChange={e => setIdCuentaDepAcum(e.target.value)} className="bg-input border border-secondary rounded-lg p-3" required>
                                 <option value="">Seleccione cuenta de depreciación acumulada...</option>
                                 {/* Re-usamos 'cuentasActivo' porque la Dep. Acum. es una cuenta de Activo (Contra-Activo) */}
-                                {cuentasActivo && cuentasActivo.map(cuenta => (
+                                {cuentasActivoFijo && cuentasActivoFijo.map(cuenta => (
                                     <option key={cuenta.id_cuenta} value={cuenta.id_cuenta}>
                                         {cuenta.nombre}
                                     </option>

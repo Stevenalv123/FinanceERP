@@ -15,7 +15,7 @@ export default function Inventario() {
 
     const [activeTab, setActiveTab] = useState("productos");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { productos = [], isLoading, eliminarProducto, agregarProducto } = useProductos();
+    const { productos = [], isLoading, eliminarProducto, agregarProducto, generarAsientoInicial } = useProductos();
 
     const valorTotalInventario = productos.reduce((total, producto) => {
         if (!producto) return total;
@@ -69,9 +69,18 @@ export default function Inventario() {
                                     <h3 className="text-title text-xl font-bold">Gestión de productos</h3>
                                     <p className="text-subtitle text-s">Administra el catálogo de productos del inventario</p>
                                 </div>
-                                <button className="btn-new bg-button text-button flex flex-row h-10 text-s gap-3 p-2 rounded-xl items-center cursor-pointer hover:opacity-95 hover:scale-110 transition" onClick={() => setIsModalOpen(true)}>
-                                    <span className="icon"><Plus /></span> Nuevo Producto
-                                </button>
+                                <div className="flex flex-row gap-4">
+                                    <button
+                                        onClick={generarAsientoInicial}
+                                        className="bg-yellow-500 text-black px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 hover:opacity-95 hover:scale-110 transition"
+                                    >
+                                        Generar Asiento Inicial
+                                    </button>
+                                    <button className="btn-new bg-button text-button flex flex-row h-10 text-s gap-3 p-2 rounded-xl items-center cursor-pointer hover:opacity-95 hover:scale-110 transition" onClick={() => setIsModalOpen(true)}>
+                                        <span className="icon"><Plus /></span> Nuevo Producto
+                                    </button>
+                                </div>
+
                             </div>
 
                             <div className="mt-8 overflow-x-auto">

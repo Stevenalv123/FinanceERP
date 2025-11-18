@@ -1,19 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
-import { supabase } from "../supabase/supabaseclient"; 
-import { useEmpresa } from "../contexts/empresacontext"; 
+import { supabase } from "../supabase/supabaseclient";
+import { useEmpresa } from "../contexts/empresacontext";
 
 export function useCajasBancos() {
-    const { empresaId } = useEmpresa(); 
+    const { empresaId } = useEmpresa();
 
     const [movimientos, setMovimientos] = useState([]);
-    const [isLoading, setIsLoading] = useState(false); 
-    
+    const [isLoading, setIsLoading] = useState(false);
+
     const [isSavingMov, setIsSavingMov] = useState(false);
     const [isDeletingMov, setIsDeletingMov] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const fetchMovimientos = useCallback(async () => {
-        if (!empresaId) return; 
+        if (!empresaId) return;
 
         setIsLoading(true);
         try {
@@ -35,15 +36,15 @@ export function useCajasBancos() {
             if (error) {
                 throw new Error("No se pudieron cargar los movimientos");
             }
-            
+
             setMovimientos(data || []);
         } catch (error) {
             console.error(error.message);
-            setMovimientos([]); 
+            setMovimientos([]);
         } finally {
-            setIsLoading(false); 
+            setIsLoading(false);
         }
-    }, [empresaId]); 
+    }, [empresaId]);
     useEffect(() => {
         fetchMovimientos();
     }, [fetchMovimientos]);
@@ -75,11 +76,11 @@ export function useCajasBancos() {
                 .single();
 
             if (error) throw error;
-            
-            await fetchMovimientos(); 
-            
+
+            await fetchMovimientos();
+
             setIsSavingMov(false);
-            return data; 
+            return data;
 
         } catch (error) {
             console.error("Error al guardar movimiento:", error.message);
@@ -97,9 +98,9 @@ export function useCajasBancos() {
                 .eq('id_movimiento', id_movimiento);
 
             if (error) throw error;
-            
-            await fetchMovimientos(); 
-            
+
+            await fetchMovimientos();
+
             setIsDeletingMov(false);
             return { success: true };
 
@@ -110,12 +111,39 @@ export function useCajasBancos() {
         }
     };
 
-    return { 
-        movimientos, 
+    const registrarSaldoInicial = async (datos) => {
+        setIsSaving(true);
+        try {
+            const { error } = await supabase.rpc('sp_registrar_saldo_inicial', {
+                p_id_empresa: empresaId,
+                p_id_cuenta_destino: Number(datos.id_cuenta),
+                p_monto: Number(datos.monto),
+                p_fecha: datos.fecha,
+                p_descripcion: datos.descripcion || "Saldo Inicial de Apertura"
+            });
+
+            if (error) throw error;
+
+            toast.success("✅ Saldo inicial registrado correctamente.");
+            await fetchMovimientos(); // Refrescar la tabla
+            return { success: true };
+        } catch (error) {
+            console.error(error);
+            toast.error("Error: " + error.message);
+            return { success: false };
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return {
+        movimientos,
         isLoading,
-        agregarMovimiento, 
+        agregarMovimiento,
         isSavingMov,
         eliminarMovimiento,
-        isDeletingMov
+        isDeletingMov,
+        registrarSaldoInicial,
+        isSaving
     };
 }
