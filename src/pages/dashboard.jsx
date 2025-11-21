@@ -25,6 +25,7 @@ const navLinks = [
     { to: "personal", label: 'Personal', icon: HardHat },
     { to: "estadosFinancieros", label: 'Estados Financieros', icon: FileSpreadsheetIcon },
     { to: "analisis", label: 'Análisis', icon: ChartColumn },
+    { to: "proyecciones", key: 'proyecciones', label: 'Proyecciones', icon: TrendingUp },
     { to: "reportes", label: 'Reportes', icon: TrendingUp },
 ];
 

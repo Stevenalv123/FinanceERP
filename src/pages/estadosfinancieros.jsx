@@ -9,6 +9,7 @@ import EstadoResultadosReporte from "../components/estadoResultadosReporte";
 import FlujoEfectivoReporte from "../components/flujoEfectivoReporte";
 import usePersistentState from "../hooks/usePersistentState";
 import { exportFinancialReports } from "../utils/exportToExcel";
+import EstadoOrigenAplicacionReporte from "../components/estadoOrigenAplicacionReporte";
 
 const getTodayString = () => {
     const today = new Date();
@@ -24,6 +25,7 @@ export default function EstadosFinancieros() {
         { key: 'balanceGeneral', label: 'Balance General' },
         { key: 'estadoResultados', label: 'Estado de Resultados' },
         { key: 'flujoEfectivo', label: 'Flujo de Efectivo' },
+        { key: 'origenAplicacion', label: 'Origen y Aplicación' },
     ]);
     const [activeTab, setActiveTab] = useState('balanceGeneral');
     const [empresaInfo, setEmpresaInfo] = useState(null);
@@ -301,6 +303,16 @@ export default function EstadosFinancieros() {
             {activeTab === 'flujoEfectivo' && (
                 <div className="mt-4">
                     <FlujoEfectivoReporte
+                        isLoading={isLoading}
+                        datosActuales={datosActuales}
+                        datosAnteriores={datosAnteriores}
+                    />
+                </div>
+            )}
+
+            {activeTab === 'origenAplicacion' && (
+                <div className="mt-4 overflow-x-auto">
+                    <EstadoOrigenAplicacionReporte
                         isLoading={isLoading}
                         datosActuales={datosActuales}
                         datosAnteriores={datosAnteriores}

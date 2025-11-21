@@ -13,6 +13,7 @@ import AnalisisFinanciero from '../pages/analisisfinanciero';
 import OnBuilding from '../components/onbuiliding';
 import GastosFijos from '../pages/GastosFijos';
 import EstadosFinancieros from '../pages/estadosfinancieros';
+import Proyecciones from '../pages/proyecciones';
 import Login from '../pages/login';
 import ProtectedRoute from './protectedroute';
 
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
               { path: 'estadosFinancieros', element: <EstadosFinancieros /> },
               { path: 'analisis', element: <AnalisisFinanciero /> },
               { path: 'reportes', element: <OnBuilding /> },
+              { path: 'proyecciones', element: <Proyecciones /> },
               // Si estás en '/dashboard', redirige a 'empresas'
               { index: true, element: <Navigate to="empresas" replace /> }
             ]
