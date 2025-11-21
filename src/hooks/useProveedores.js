@@ -19,19 +19,19 @@ export function useProveedores() {
             const { data: proveedoresData, error: proveedoresError } = await supabase
                 .from("proveedores")
                 .select(`
-                    id_proveedor,
-                    nombre_comercial,
-                    razon_social,
-                    email,
-                    telefono,
-                    direccion,
-                    dias_de_pago,
-                    limite_credito,
-                    estado,
-                    categoria:categorias_producto(nombre),
-                    pais:pais(paisnombre),
-                    ciudad:estado(estadonombre)
-                `)
+                     id_proveedor,
+                     nombre_comercial,
+                     razon_social,
+                     email,
+                     telefono,
+                     direccion,
+                     dias_de_pago,
+                     limite_credito,
+                     estado,
+                     categoria:categorias_producto(nombre),
+                     pais:pais(paisnombre),
+                     ciudad:estado(estadonombre)
+                `)
                 .eq("id_empresa", empresaId);
 
             if (proveedoresError) throw proveedoresError;

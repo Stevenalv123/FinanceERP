@@ -19,7 +19,7 @@ export default function ActivosFijosCards({ nombre, vida_util_anios, fecha_compr
                 <div className="flex flex-col md:flex-row md:items-center md:gap-2 text-sm text-subtitle mb-1">
                     <span>Vida útil: {vida_util_anios} años</span>
                     <span className="hidden md:inline">|</span>
-                    <span>Adquirido: {formattedDate}</span>
+                    <span>Adquirido: {formattedDate(fecha_compra)}</span>
                     <span className="hidden md:inline">|</span>
                     <span>Responsable: {responsable}</span>
                 </div>

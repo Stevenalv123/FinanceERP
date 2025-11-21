@@ -175,12 +175,20 @@ export default function AnalisisFinanciero() {
             const utilidadNeta = utilidadOperativa - impuestoIR;
 
             // Balance
-            const totalActivoCorriente = activos.filter(c => c.subtipo === 'Activo Corriente').reduce((sum, c) => sum + c.saldo, 0);
-            const totalActivoNoCorriente = activos.filter(c => c.subtipo === 'Activo No Corriente').reduce((sum, c) => sum + c.saldo, 0);
+            const totalActivoCorriente = activos
+                .filter(c => c.subtipo && c.subtipo.includes('Corriente') && !c.subtipo.includes('No'))
+                .reduce((sum, c) => sum + c.saldo, 0);
+            const totalActivoNoCorriente = activos
+                .filter(c => c.subtipo && (c.subtipo.includes('No Corriente') || c.subtipo.includes('Fijo')))
+                .reduce((sum, c) => sum + c.saldo, 0);
             const totalActivos = totalActivoCorriente + totalActivoNoCorriente;
 
-            const totalPasivoCorriente = Math.abs(pasivos.filter(c => c.subtipo === 'Pasivo Corriente').reduce((sum, c) => sum + c.saldo, 0));
-            const totalPasivoNoCorriente = Math.abs(pasivos.filter(c => c.subtipo === 'Pasivo No Corriente').reduce((sum, c) => sum + c.saldo, 0));
+            const totalPasivoCorriente = Math.abs(pasivos
+                .filter(c => c.subtipo && c.subtipo.includes('Corriente') && !c.subtipo.includes('No'))
+                .reduce((sum, c) => sum + c.saldo, 0));
+            const totalPasivoNoCorriente = Math.abs(pasivos
+                .filter(c => c.subtipo && (c.subtipo.includes('No Corriente') || c.subtipo.includes('Largo')))
+                .reduce((sum, c) => sum + c.saldo, 0));
             const totalPasivos = totalPasivoCorriente + totalPasivoNoCorriente;
 
             const totalPatrimonioCuentas = Math.abs(patrimonioCuentas.reduce((sum, c) => sum + c.saldo, 0));
@@ -214,10 +222,15 @@ export default function AnalisisFinanciero() {
         const periodoUtilidadNeta = actualYTD.utilidadNeta - anteriorYTD.utilidadNeta;
 
         // --- PROMEDIOS para ratios de actividad ---
-        const inventarioPromedio = (actualYTD.inventario + anteriorYTD.inventario) / 2;
-        const cxcPromedio = (actualYTD.cxc + anteriorYTD.cxc) / 2;
-        const activosFijosPromedio = (actualYTD.activosFijosNetos + anteriorYTD.activosFijosNetos) / 2;
-        const activosTotalesPromedio = (actualYTD.totalActivos + anteriorYTD.totalActivos) / 2;
+        const calcPromedio = (actual, anterior) => {
+            if (anterior === 0) return actual;
+            return (actual + anterior) / 2;
+        };
+
+        const inventarioPromedio = calcPromedio(actualYTD.inventario, anteriorYTD.inventario);
+        const cxcPromedio = calcPromedio(actualYTD.cxc, anteriorYTD.cxc);
+        const activosFijosPromedio = calcPromedio(actualYTD.activosFijosNetos, anteriorYTD.activosFijosNetos);
+        const activosTotalesPromedio = calcPromedio(actualYTD.totalActivos, anteriorYTD.totalActivos);
 
         // --- CÁLCULO DE TODOS LOS RATIOS (Usando Balances 'actualYTD' y P&L 'periodo') ---
         const d = (den) => (den === 0 ? 0 : den); // Evitar división por cero
@@ -336,7 +349,7 @@ export default function AnalisisFinanciero() {
             <div className="p-6">
                 <h1 className="text-2xl font-bold mb-1">Análisis Financiero</h1>
                 <p className="text-subtitle">
-                        Empresa: {empresaInfo ? empresaInfo.nombre : 'Cargando...'} | Moneda: {empresaInfo ? empresaInfo.moneda.simbolo : 'N/A'}
+                    Empresa: {empresaInfo ? empresaInfo.nombre : 'Cargando...'} | Moneda: {empresaInfo ? empresaInfo.moneda.simbolo : 'N/A'}
                 </p>
             </div>
 
@@ -379,7 +392,7 @@ export default function AnalisisFinanciero() {
                         <div>
                             <StatusIcon score={rentabilidadScore} />
                             <span className="font-semibold text-title">Rentabilidad</span>
-                            S </div>
+                        </div>
                         <p className="text-subtitle mt-2 text-xs">{rentabilidadInterpretation}</p>
                         <progress className="w-full h-1 mt-2 rounded-full bg-secondary/30 [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-secondary/30 [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white" value={rentabilidadScore} max="100"></progress>
                     </div>

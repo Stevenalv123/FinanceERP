@@ -8,21 +8,20 @@ const TABLA = 'activos_fijos';
 export function useActivosFijos() {
     const { empresaId } = useEmpresa();
     const [activosFijos, setActivosFijos] = useState([]);
-
+    
     // Listas para los Dropdowns
-    const [cuentasActivoFijo, setCuentasActivoFijo] = useState([]); // Para clasificar el activo (ej. Equipo de computo)
-    const [cuentasGasto, setCuentasGasto] = useState([]); // Para la depreciación
-    const [cuentasPago, setCuentasPago] = useState([]); // Para pagar (Caja/Banco)
+    const [cuentasActivoFijo, setCuentasActivoFijo] = useState([]); 
+    const [cuentasGasto, setCuentasGasto] = useState([]); 
+    const [cuentasPago, setCuentasPago] = useState([]); 
 
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
 
-    // 1. Cargar la lista de Activos Fijos registrados
+    // 1. Cargar Activos Fijos (Tabla Principal)
     const fetchActivosFijos = useCallback(async () => {
         if (!empresaId) return;
         setIsLoading(true);
-        setError(null);
         try {
             const { data, error } = await supabase
                 .from(TABLA)
@@ -43,41 +42,48 @@ export function useActivosFijos() {
         }
     }, [empresaId]);
 
-    // 2. Cargar cuentas para catalogar el Activo (Busca por TEXTO, no por ID)
+    // 2. Cargar Catálogos (LA CORRECCIÓN)
     const fetchCatalogos = useCallback(async () => {
         if (!empresaId) return;
         try {
-            // A. Cuentas de Activo No Corriente (Para asignar al bien)
-            const { data: dataActivos } = await supabase
+            // Traemos TODAS las cuentas con sus relaciones
+            // tipo_cuenta y subtipo_cuenta deben coincidir con los nombres de tus tablas de catálogo
+            const { data: todasLasCuentas, error } = await supabase
                 .from('cuentas_empresa')
-                .select('*')
-                .eq('id_empresa', empresaId)
-                .eq('tipo', 'Activo')
-                .eq('subtipo', 'Activo No Corriente')
-                .order('nombre');
-            setCuentasActivoFijo(dataActivos || []);
+                .select(`
+                    *,
+                    tipo_cuenta:id_tipo ( nombre ),
+                    subtipo_cuenta:id_subtipo ( nombre )
+                `)
+                .eq('id_empresa', empresaId);
 
-            // B. Cuentas de Gasto (Para configurar la depreciación futura)
-            const { data: dataGastos } = await supabase
-                .from('cuentas_empresa')
-                .select('*')
-                .eq('id_empresa', empresaId)
-                .eq('tipo', 'Gasto')
-                .order('nombre');
-            setCuentasGasto(dataGastos || []);
+            if (error) throw error;
 
-            // C. Cuentas de Pago (Caja o Banco para pagar la compra)
-            const { data: dataPago } = await supabase
-                .from('cuentas_empresa')
-                .select('*')
-                .eq('id_empresa', empresaId)
-                .eq('tipo', 'Activo')
-                .in('nombre', ['Caja', 'Banco', 'Bancos', 'Caja General']) // Filtro por nombres comunes o subtipo Activo Corriente
-                .order('nombre');
-            setCuentasPago(dataPago || []);
+            if (todasLasCuentas) {
+                // A. Filtrar Activos No Corrientes (Para el activo fijo)
+                const activos = todasLasCuentas.filter(c => 
+                    c.tipo_cuenta?.nombre === 'Activo' && 
+                    c.subtipo_cuenta?.nombre?.includes('No Corriente')
+                );
+                setCuentasActivoFijo(activos);
+
+                // B. Filtrar Gastos (Para la depreciación)
+                const gastos = todasLasCuentas.filter(c => 
+                    c.tipo_cuenta?.nombre === 'Gasto'
+                );
+                setCuentasGasto(gastos);
+
+                // C. Filtrar Efectivo (Para pagar) -> Buscamos "Caja" o "Banco" en el nombre
+                const pagos = todasLasCuentas.filter(c => 
+                    c.tipo_cuenta?.nombre === 'Activo' && 
+                    (c.nombre.toLowerCase().includes('caja') || c.nombre.toLowerCase().includes('banco'))
+                );
+                setCuentasPago(pagos);
+            }
 
         } catch (err) {
             console.error("Error al cargar catálogos:", err.message);
+            // toast.error("Error cargando cuentas contables");
         }
     }, [empresaId]);
 
@@ -87,11 +93,10 @@ export function useActivosFijos() {
     }, [fetchActivosFijos, fetchCatalogos]);
 
 
-    // 3. Guardar Nuevo Activo
+    // 3. Guardar Nuevo Activo (IGUAL QUE ANTES)
     const addActivoFijo = async (nuevoActivo) => {
         if (!empresaId) return { success: false, message: "No hay empresa seleccionada." };
 
-        // Validación: El usuario debe seleccionar de dónde paga
         if (!nuevoActivo.id_cuenta_pago) {
             return { success: false, message: "Debes seleccionar la cuenta de pago (Caja o Banco)." };
         }
@@ -100,8 +105,6 @@ export function useActivosFijos() {
         setError(null);
 
         try {
-            // Preparamos el objeto para la tabla activos_fijos 
-            // (Excluimos 'id_cuenta_pago' porque ese campo no existe en la tabla activos_fijos, solo se usa para el asiento)
             const { id_cuenta_pago, ...activoParaInsertar } = nuevoActivo;
 
             const activoData = {
@@ -109,7 +112,6 @@ export function useActivosFijos() {
                 id_empresa: empresaId
             };
 
-            // A. Insertar en tabla 'activos_fijos'
             const { data, error } = await supabase
                 .from(TABLA)
                 .insert(activoData)
@@ -118,10 +120,8 @@ export function useActivosFijos() {
 
             if (error) throw error;
 
-            // B. Crear Asiento Contable de Compra
             const movimientos = [
                 {
-                    // DEBE: Aumenta el Activo Fijo (ej. "Equipo de Transporte")
                     id_empresa: empresaId,
                     id_cuenta: nuevoActivo.id_cuenta_activo,
                     fecha: nuevoActivo.fecha_compra,
@@ -130,9 +130,8 @@ export function useActivosFijos() {
                     descripcion: `Compra de activo fijo: ${nuevoActivo.nombre}`
                 },
                 {
-                    // HABER: Disminuye el dinero (ej. "Banco" o "Caja")
                     id_empresa: empresaId,
-                    id_cuenta: id_cuenta_pago, // <-- USAMOS EL ID SELECCIONADO POR EL USUARIO
+                    id_cuenta: id_cuenta_pago,
                     fecha: nuevoActivo.fecha_compra,
                     tipo: 'HABER',
                     monto: Number(nuevoActivo.valor_compra),
@@ -145,8 +144,6 @@ export function useActivosFijos() {
                 .insert(movimientos);
 
             if (errorMovimiento) {
-                // Si falla el asiento, idealmente deberíamos borrar el activo creado (rollback manual), 
-                // pero por ahora mostramos error.
                 console.error("Error asiento:", errorMovimiento);
                 toast.error("Activo guardado, pero falló el registro contable.");
             } else {
@@ -158,7 +155,7 @@ export function useActivosFijos() {
 
         } catch (err) {
             console.error("Error al agregar activo fijo:", err.message);
-            return { success: false, message: err.message };
+            return { success: false, message: err.message }; 
         } finally {
             setIsSaving(false);
         }
@@ -166,9 +163,9 @@ export function useActivosFijos() {
 
     return {
         activosFijos,
-        cuentasActivoFijo, // Para dropdown "Tipo de Activo"
-        cuentasGasto,      // Para dropdown "Cuenta Depreciación"
-        cuentasPago,       // Para dropdown "Pagar con..."
+        cuentasActivoFijo,
+        cuentasGasto,
+        cuentasPago,
         isLoading,
         isSaving,
         error,

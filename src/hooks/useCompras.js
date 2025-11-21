@@ -41,7 +41,6 @@ export function useCompras() {
                 p_fecha_compra: compraData.fecha_compra
             });
             if (error) throw error;
-            console.log("Compra: ", nuevaCompraId);
             toast.success(`✅ Compra registrada (ID: ${nuevaCompraId})`);
             await fetchCompras();
             return { success: true };

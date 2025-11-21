@@ -4,29 +4,28 @@ import {
     Bot, Sun, Moon, Lightbulb, Menu, X // Importa Menu y X
 } from "lucide-react";
 import { useState } from "react";
-import { Outlet, NavLink } from "react-router-dom"; // <-- ¡Importante!
+import { Outlet, NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/authcontext";
 import { useEmpresa } from "../contexts/empresacontext";
 import { useEmpresas } from "../hooks/useEmpresas";
 import { useTheme } from "../contexts/themecontext";
 import tippy from "tippy.js";
 import BotComponent from "../components/bot";
+import Swal from "sweetalert2";
 
-// Define tus enlaces de navegación aquí.
-// 'to' debe coincidir con la ruta en tu archivo router.jsx
 const navLinks = [
-    { to: "empresas", key: "empresas", label: "Empresas", icon: Building2 },
-    { to: "ventas", key: 'ventas', label: 'Ventas', icon: ShoppingCart },
-    { to: "clientes", key: 'clientes', label: 'Clientes', icon: UserCheck },
-    { to: "inventario", key: 'inventario', label: 'Inventario', icon: Package },
-    { to: "proveedores", key: 'proveedores', label: 'Proveedores', icon: Users },
-    { to: "cajabancos", key: 'cajabancos', label: 'Cajas/Bancos', icon: Wallet },
-    { to: "activosFijos", key: 'activosFijos', label: 'Activos Fijos', icon: Wrench },
-    { to: "gastosFijos", key: 'gastosFijos', label: 'Gastos Fijos', icon: Lightbulb },
-    { to: "personal", key: 'personal', label: 'Personal', icon: HardHat },
-    { to: "estadosFinancieros", key: 'estadosFinancieros', label: 'Estados Financieros', icon: FileSpreadsheetIcon },
-    { to: "analisis", key: 'analisis', label: 'Análisis', icon: ChartColumn },
-    { to: "reportes", key: 'reportes', label: 'Reportes', icon: TrendingUp },
+    { to: "empresas", label: "Empresas", icon: Building2 },
+    { to: "ventas", label: 'Ventas', icon: ShoppingCart },
+    { to: "clientes", label: 'Clientes', icon: UserCheck },
+    { to: "inventario", label: 'Inventario', icon: Package },
+    { to: "proveedores", label: 'Proveedores', icon: Users },
+    { to: "cajabancos", label: 'Cajas/Bancos', icon: Wallet },
+    { to: "activosFijos", label: 'Activos Fijos', icon: Wrench },
+    { to: "gastosFijos", label: 'Gastos Fijos', icon: Lightbulb },
+    { to: "personal", label: 'Personal', icon: HardHat },
+    { to: "estadosFinancieros", label: 'Estados Financieros', icon: FileSpreadsheetIcon },
+    { to: "analisis", label: 'Análisis', icon: ChartColumn },
+    { to: "reportes", label: 'Reportes', icon: TrendingUp },
 ];
 
 // Componente de enlace reutilizable
@@ -55,7 +54,49 @@ export default function Dashboard() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showBot, setShowBot] = useState(false);
 
-    tippy('#bot-button', { /* ... (tu código de tippy) ... */ });
+    tippy('#bot-button', { content: "Asistente Financiero IA", placement: 'left', theme: 'light' });
+    const { logoutUser } = useAuth();
+
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            title: "¿Seguro que deseas salir?",
+            text: "Tu sesión se cerrará y deberás iniciar sesión nuevamente.",
+            icon: "warning",
+            background: "#1e1e1e",
+            color: "#fff",
+            iconColor: "#facc15",
+            showCancelButton: true,
+            confirmButtonColor: "#2563eb",
+            cancelButtonColor: "#ef4444",
+            confirmButtonText: "Sí, cerrar sesión",
+            cancelButtonText: "Cancelar",
+            customClass: {
+                popup: "rounded-2xl shadow-xl border border-gray-700",
+                confirmButton: "rounded-lg px-4 py-2",
+                cancelButton: "rounded-lg px-4 py-2",
+            },
+        });
+
+        if (result.isConfirmed) {
+            await logoutUser();
+
+            await Swal.fire({
+                title: "Sesión cerrada",
+                text: "Has salido del sistema.",
+                icon: "success",
+                background: "#1e1e1e",
+                color: "#fff",
+                iconColor: "#22c55e",
+                showConfirmButton: false,
+                timer: 1400,
+                customClass: {
+                    popup: "rounded-2xl shadow-xl border border-gray-700",
+                },
+            });
+
+            navigate("/login"); // ← ENVÍA DIRECTO A LOGIN
+        }
+    };
 
     return (
         <>
@@ -70,9 +111,10 @@ export default function Dashboard() {
                         </span>
                     </div>
                     <nav className="flex-1 flex flex-col gap-2">
-                        {navLinks.map((link) => (
-                            <AppLink key={link.key} {...link} />
+                        {navLinks.map((link, index) => (
+                            <AppLink key={index} {...link} />
                         ))}
+
                     </nav>
                 </aside>
 
@@ -92,10 +134,14 @@ export default function Dashboard() {
 
                         {/* Logo y Título (se oculta en móvil) */}
                         <div className="hidden md:flex">
-                            <img src="/LogoFinanceERP.png" alt="Logo" className="h-14 mr-4" />
+                            <Link to="empresas" className="group cursor-pointer">
+                                <img src="/LogoFinanceERP.png" alt="Logo" className="h-14 mr-4" />
+                            </Link>
                             <div className="flex flex-col">
-                                <h3 className="text-title text-2xl font-bold">Finance ERP</h3>
-                                <span className="text-subtitle text-l">{empresaSeleccionada ? empresaSeleccionada.nombre : "..."}</span>
+                                <Link to="empresas" className="group cursor-pointer">
+                                    <h3 className="text-title text-2xl font-bold group-hover:text-button transition-colors">Finance ERP</h3>
+                                    <span className="text-subtitle text-l">{empresaSeleccionada ? empresaSeleccionada.nombre : "..."}</span>
+                                </Link>
                             </div>
                         </div>
 
@@ -112,7 +158,7 @@ export default function Dashboard() {
                                 {theme === 'dark' ? <Sun color="white" /> : <Moon color="black" />}
                                 <span className="hidden md:block">{theme === 'dark' ? 'Light' : 'Dark'}</span>
                             </button>
-                            <button className="text-title flex gap-2 border-1 p-2 rounded-xl items-center justify-center cursor-pointer hover:bg-secondary transition-transform duration-200 ease-in-out hover:scale-110">
+                            <button onClick={handleLogout} className="text-title flex gap-2 border-1 p-2 rounded-xl items-center justify-center cursor-pointer hover:bg-secondary transition-transform duration-200 ease-in-out hover:scale-110">
                                 <LogOut className="text-title" />
                                 <span className="hidden md:block">Salir</span>
                             </button>
@@ -167,9 +213,12 @@ export default function Dashboard() {
                                 </button>
                             </div>
                             <nav className="flex-1 flex flex-col gap-2">
-                                {navLinks.map((link) => (
-                                    // Cierra el menú al hacer clic en un enlace
-                                    <AppLink key={link.key} {...link} onClick={() => setIsMobileMenuOpen(false)} />
+                                {navLinks.map((link, index) => (
+                                    <AppLink
+                                        key={index}
+                                        {...link}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    />
                                 ))}
                             </nav>
                         </div>

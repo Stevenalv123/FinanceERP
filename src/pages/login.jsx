@@ -1,7 +1,7 @@
 import { useState } from "react";
-import {useNavigate} from "react-router-dom"
-import {useAuth} from "../contexts/authcontext"
-import {toast} from "react-hot-toast"
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/authcontext";
+import { toast } from "react-hot-toast";
 
 export default function Login() {
     const [activeTab, setActiveTab] = useState("login");
@@ -19,6 +19,7 @@ export default function Login() {
     const navigate = useNavigate();
     console.log(session);
 
+    // --- Lógica de Registro ---
     const handleSignUp = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -30,19 +31,20 @@ export default function Login() {
                     style: {
                         backgroundColor: "rgb(34, 197, 94, 0.9)",
                         color: "#fff",
-                        borderRadius: "12px",   
+                        borderRadius: "12px",
                         padding: "12px 16px",
                     }
                 });
                 navigate("/dashboard");
             }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     }
 
+    // --- Lógica de Login ---
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -59,10 +61,10 @@ export default function Login() {
                     }
                 });
                 navigate("/dashboard");
-            } else{
-                if(result.error?.includes("Invalid login credentials")){
-                    setError({field: "password", message: "Contraseña incorrecta" });
-                } 
+            } else {
+                if (result.error?.includes("Invalid login credentials")) {
+                    setError({ field: "password", message: "Contraseña incorrecta" });
+                }
                 else if (result.error?.includes("Email not found")) {
                     setError({ field: "email", message: "Este correo no está registrado" });
                 } else {
@@ -77,65 +79,143 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center p-4">
-            <div className="flex flex-col gap-2 items-center h-48 justify-center">
-                <img src="LogoFinanceERP.png" alt="Logo Finance ERP" className="h-18 "/>
-                <h1 className="text-title text-3xl font-bold">FinanceERP</h1>
-                <p className="text-subtitle">Sistema de Gestión Financiera Empresarial</p>
-            </div>
-            <div className="bg-primary p-8 rounded-xl shadow-lg max-w-md w-full">
-                <div className="flex flex-col gap-1">
-                    <h1 className="text-title text-l font-bold text-start">
-                        Acceso al sistema
-                    </h1>
-                    <p className="text-subtitle text-sm text-start mb-6">
-                        Ingresa tu cuenta o registrate para comenzar
-                    </p>
-                </div>
+        // Usamos style inline para el fondo principal para asegurar que tome la variable del root/theme
+        <div 
+            className="min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300"
+            style={{ backgroundColor: 'var(--color-loginbg)' }}
+        >
+            {/* Contenedor Principal */}
+            <div className="flex flex-col items-center gap-6 w-full max-w-md">
                 
-                <div className="flex flex-row gap-1 bg-secondary rounded-xl p-1">
-                    <button className={`w-full rounded-xl p-1 font-medium text-sm cursor-pointer transition-colors duration-300 ${activeTab === "login" ? "text-title bg-black" : "text-subtitle"}`} onClick={()=>handleTabChange("login")}>
-                        Iniciar Sesión
-                    </button>
-                    <button className={`w-full rounded-xl p-2 font-medium text-sm cursor-pointer transition-colors duration-300 ${activeTab === "registrarse" ? "text-title bg-black" : "text-subtitle"}`} onClick={()=>handleTabChange("registrarse")}>
-                        Registrarse
-                    </button>
+                {/* Header / Logo */}
+                <div className="flex flex-col items-center text-center gap-2 animate-fade-in-down">
+                    <img src="LogoFinanceERP.png" alt="Logo Finance ERP" className="h-20 w-auto object-contain drop-shadow-lg" />
+                    <div>
+                        <h1 className="text-title text-3xl font-bold tracking-tight">FinanceERP</h1>
+                        <p className="text-subtitle text-sm font-medium">Sistema de Gestión Financiera Empresarial</p>
+                    </div>
                 </div>
 
-                {activeTab == "login" ? (
-                    <form className="space-y-4 mb-4 mt-4 flex flex-col gap-2" onSubmit={handleLogin}>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-title text-sm font-bold text-start">Correo Electrónico</label>
-                            <input type="email" required placeholder="admin@empresa.com" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle border border-secondary" onChange={(e) => setEmail(e.target.value)}/>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-title text-sm font-bold text-start">Contraseña</label>
-                            <input type="password" required placeholder="••••••••" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle border border-secondary" onChange={(e) => setPassword(e.target.value)}/>
-                        </div>
-                        <button className="w-full bg-white text-black cursor-pointer py-2 px-4 rounded-xl font-medium">
+                {/* Tarjeta del Formulario */}
+                <div className="bg-primary w-full p-8 rounded-3xl shadow-2xl border border-secondary transition-colors duration-300">
+                    
+                    <div className="mb-6">
+                        <h2 className="text-title text-2xl font-bold text-left">
+                            {activeTab === "login" ? "¡Hola de nuevo!" : "Crear Cuenta"}
+                        </h2>
+                        <p className="text-subtitle text-sm text-left mt-1">
+                            {activeTab === "login" 
+                                ? "Ingresa tus credenciales para acceder al panel." 
+                                : "Completa el formulario para empezar."}
+                        </p>
+                    </div>
+
+                    {/* Selector de Tabs */}
+                    <div className="flex p-1.5 bg-secondary rounded-xl mb-8">
+                        <button
+                            onClick={() => handleTabChange("login")}
+                            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer ${
+                                activeTab === "login"
+                                    ? "bg-tab-indicator text-tab-indicator shadow-md"
+                                    : "text-subtitle hover:text-title"
+                            }`}
+                        >
                             Iniciar Sesión
                         </button>
-                    </form>
-                ) : (
-                    <form className="space-y-4 mb-4 mt-4 flex flex-col gap-2" onSubmit={handleSignUp}>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-title text-sm font-bold text-start">Nombre de Usuario</label>
-                            <input type="text" required placeholder="Juan Pérez" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle" onChange={(e) => setFullName(e.target.value)}/>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-title text-sm font-bold text-start">Correo Electrónico</label>
-                            <input type="email" required placeholder="admin@empresa.com" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle" onChange={(e) => setEmail(e.target.value)}/>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label className="text-title text-sm font-bold text-start">Contraseña</label>
-                            <input type="password" required placeholder="••••••••" className="w-full bg-input text-title py-2 px-4 rounded-xl font-medium placeholder:text-subtitle" onChange={(e) => setPassword(e.target.value)}/>
-                        </div>
-                        <button className="w-full cursor-pointer bg-white text-black py-2 px-4 rounded-xl font-medium">
+                        <button
+                            onClick={() => handleTabChange("registrarse")}
+                            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer ${
+                                activeTab === "registrarse"
+                                    ? "bg-tab-indicator text-tab-indicator shadow-md"
+                                    : "text-subtitle hover:text-title"
+                            }`}
+                        >
                             Registrarse
                         </button>
+                    </div>
+
+                    {/* Formularios */}
+                    <form 
+                        className="flex flex-col gap-5" 
+                        onSubmit={activeTab === "login" ? handleLogin : handleSignUp}
+                    >
+                        
+                        {/* Campo Nombre (Solo Registro) */}
+                        {activeTab === "registrarse" && (
+                            <div className="space-y-1.5">
+                                <label className="text-title text-sm font-semibold ml-1">Nombre Completo</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="Ej. Juan Pérez"
+                                    className="w-full bg-input text-title border border-secondary rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-subtitle/50"
+                                    onChange={(e) => setFullName(e.target.value)}
+                                />
+                            </div>
+                        )}
+
+                        {/* Campo Email */}
+                        <div className="space-y-1.5">
+                            <label className="text-title text-sm font-semibold ml-1">Correo Electrónico</label>
+                            <input
+                                type="email"
+                                required
+                                placeholder="admin@empresa.com"
+                                className={`w-full bg-input text-title border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-subtitle/50 ${
+                                    error?.field === "email" ? "border-red-500 ring-1 ring-red-500" : "border-secondary"
+                                }`}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                            {error?.field === "email" && <span className="text-red-500 text-xs ml-1">{error.message}</span>}
+                        </div>
+
+                        {/* Campo Password */}
+                        <div className="space-y-1.5">
+                            <label className="text-title text-sm font-semibold ml-1">Contraseña</label>
+                            <input
+                                type="password"
+                                required
+                                placeholder="••••••••"
+                                className={`w-full bg-input text-title border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-subtitle/50 ${
+                                    error?.field === "password" ? "border-red-500 ring-1 ring-red-500" : "border-secondary"
+                                }`}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            {error?.field === "password" && <span className="text-red-500 text-xs ml-1">{error.message}</span>}
+                        </div>
+
+                        {/* Error General */}
+                        {error?.field === "general" && (
+                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl text-sm text-center">
+                                {error.message}
+                            </div>
+                        )}
+
+                        {/* Botón Submit */}
+                        <button
+                            disabled={loading}
+                            className="w-full cursor-pointer bg-button text-button font-bold py-3.5 rounded-xl shadow-lg hover:opacity-90 active:scale-[0.98] transition-all mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Procesando...
+                                </span>
+                            ) : (
+                                activeTab === "login" ? "Iniciar Sesión" : "Registrarse"
+                            )}
+                        </button>
                     </form>
-                )}
+                </div>
+                
+                {/* Footer pequeño */}
+                <p className="text-subtitle text-xs opacity-60">
+                    © {new Date().getFullYear()} FinanceERP. Todos los derechos reservados.
+                </p>
             </div>
         </div>
-    )
+    );
 }

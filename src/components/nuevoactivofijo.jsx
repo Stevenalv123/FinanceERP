@@ -80,7 +80,7 @@ export default function NuevoActivoFijo({ onClose, totalActivos }) {
                 </div>
                 <form onSubmit={handleSubmit}>
                     {/* --- Campos actualizados --- */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6 overflow-y-auto max-h-[70vh] pr-4">
                         <div className="flex flex-col gap-2">
                             <label className="text-sm font-medium text-title">Código</label>
                             <input type="text" readOnly value={codigo} onChange={(e) => setCodigo(e.target.value)} className="bg-input border border-secondary rounded-lg p-3 opacity-70" />

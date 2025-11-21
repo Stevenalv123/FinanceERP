@@ -72,8 +72,8 @@ export default function EstadosFinancieros() {
         setIsLoading(true);
 
         let fechaAnterior = new Date(fechaInicio);
-        fechaAnterior.setDate(fechaAnterior.getDate() - 1);
-        const fechaInicioReporte = fechaAnterior.toISOString().split('T')[0];
+        //fechaAnterior.setDate(fechaAnterior.getDate() - 1);
+        const fechaInicioReporte = fechaInicio;
 
         try {
             const { data: dataAnterior, error: errorAnterior } = await supabase.rpc('sp_get_balance_as_of_date', {

@@ -84,11 +84,28 @@ export function useProductos() {
             return { success: false, message: "No hay empresa seleccionada." };
         }
 
-        const ID_CUENTA_INVENTARIO = 7;
-        const ID_CUENTA_PROVEEDORES = 5;
-        const ID_CUENTA_CAJA = 6; // ¡Verifica este ID!
-
         try {
+            const { data: cuentas, error: errorCuentas } = await supabase
+                .from('cuentas_empresa')
+                .select('id_cuenta, nombre')
+                .eq('id_empresa', empresaId)
+                .in('nombre', ['Inventario', 'Proveedores', 'Caja']); // Nombres estándar
+
+            if (errorCuentas) throw errorCuentas;
+
+            // Mapeamos los resultados a variables
+            const cuentaInventario = cuentas.find(c => c.nombre === 'Inventario');
+            const cuentaProveedores = cuentas.find(c => c.nombre === 'Proveedores');
+            const cuentaCaja = cuentas.find(c => c.nombre === 'Caja');
+
+            // Validamos que existan (por si acaso se borraron o cambiaron de nombre)
+            if (!cuentaInventario || !cuentaProveedores || !cuentaCaja) {
+                throw new Error("No se encontraron las cuentas contables base (Inventario, Proveedores o Caja) para registrar el movimiento.");
+            }
+
+            const ID_CUENTA_INVENTARIO = cuentaInventario.id_cuenta;
+            const ID_CUENTA_PROVEEDORES = cuentaProveedores.id_cuenta;
+            const ID_CUENTA_CAJA = cuentaCaja.id_cuenta;
             // --- 1. Definir el objeto a insertar ---
             const productoParaInsertar = {
                 ...nuevoProducto, // Esto viene del formulario
@@ -128,83 +145,84 @@ export function useProductos() {
 
             // --- 4. Lógica Contable (esto ya lo tenías bien) ---
             const costoTotal = (nuevoProducto.precio_compra || 0) * (nuevoProducto.stock || 0);
-            if (costoTotal <= 0) {
-                return { success: true };
-            }
+            if (costoTotal > 0) {
+                const fechaActual = new Date().toISOString().slice(0, 10);
+                const movimientosParaInsertar = [];
 
-            const fechaActual = new Date().toISOString().slice(0, 10);
-            const movimientosParaInsertar = [];
-
-            // ... (Tu lógica de DEBE y HABER de partida doble va aquí) ...
-            // 1. El DEBE (Aumento de Inventario)
-            movimientosParaInsertar.push({
-                id_empresa: empresaId,
-                id_cuenta: ID_CUENTA_INVENTARIO,
-                fecha: fechaActual,
-                tipo: 'DEBE',
-                monto: costoTotal,
-                descripcion: `Stock inicial: ${nuevoProducto.nombre}`
-            });
-
-            // 2. El HABER (Cómo se pagó)
-            if (infoPago.tipo === 'credito') {
+                // 1. El DEBE (Aumento de Inventario)
                 movimientosParaInsertar.push({
                     id_empresa: empresaId,
-                    id_cuenta: ID_CUENTA_PROVEEDORES,
+                    id_cuenta: ID_CUENTA_INVENTARIO, // ID Dinámico
                     fecha: fechaActual,
-                    tipo: 'HABER',
+                    tipo: 'DEBE',
                     monto: costoTotal,
-                    descripcion: `Compra a crédito stock: ${nuevoProducto.nombre}`
+                    descripcion: `Stock inicial: ${nuevoProducto.nombre}`
                 });
-            } else if (infoPago.tipo === 'efectivo') {
-                movimientosParaInsertar.push({
-                    id_empresa: empresaId,
-                    id_cuenta: ID_CUENTA_CAJA,
-                    fecha: fechaActual,
-                    tipo: 'HABER',
-                    monto: costoTotal,
-                    descripcion: `Compra efectivo stock: ${nuevoProducto.nombre}`
-                });
-            } else if (infoPago.tipo === 'parcial') {
-                const montoEfectivo = infoPago.montoEfectivo || 0;
-                const montoCredito = costoTotal - montoEfectivo;
 
-                if (montoEfectivo > 0) {
+                // 2. El HABER (Cómo se pagó)
+                if (infoPago.tipo === 'credito') {
                     movimientosParaInsertar.push({
                         id_empresa: empresaId,
-                        id_cuenta: ID_CUENTA_CAJA,
+                        id_cuenta: ID_CUENTA_PROVEEDORES, // ID Dinámico
                         fecha: fechaActual,
                         tipo: 'HABER',
-                        monto: montoEfectivo,
-                        descripcion: `Pago efectivo stock: ${nuevoProducto.nombre}`
+                        monto: costoTotal,
+                        descripcion: `Compra a crédito stock: ${nuevoProducto.nombre}`
                     });
-                }
-                if (montoCredito > 0) {
+                } else if (infoPago.tipo === 'efectivo') {
                     movimientosParaInsertar.push({
                         id_empresa: empresaId,
-                        id_cuenta: ID_CUENTA_PROVEEDORES,
+                        id_cuenta: ID_CUENTA_CAJA, // ID Dinámico
                         fecha: fechaActual,
                         tipo: 'HABER',
-                        monto: montoCredito,
-                        descripcion: `Crédito stock: ${nuevoProducto.nombre}`
+                        monto: costoTotal,
+                        descripcion: `Compra efectivo stock: ${nuevoProducto.nombre}`
                     });
+                } else if (infoPago.tipo === 'parcial') {
+                    const montoEfectivo = infoPago.montoEfectivo || 0;
+                    const montoCredito = costoTotal - montoEfectivo;
+
+                    if (montoEfectivo > 0) {
+                        movimientosParaInsertar.push({
+                            id_empresa: empresaId,
+                            id_cuenta: ID_CUENTA_CAJA, // ID Dinámico
+                            fecha: fechaActual,
+                            tipo: 'HABER',
+                            monto: montoEfectivo,
+                            descripcion: `Pago efectivo stock: ${nuevoProducto.nombre}`
+                        });
+                    }
+                    if (montoCredito > 0) {
+                        movimientosParaInsertar.push({
+                            id_empresa: empresaId,
+                            id_cuenta: ID_CUENTA_PROVEEDORES, // ID Dinámico
+                            fecha: fechaActual,
+                            tipo: 'HABER',
+                            monto: montoCredito,
+                            descripcion: `Crédito stock: ${nuevoProducto.nombre}`
+                        });
+                    }
                 }
-            }
-            // ...
-            if (movimientosParaInsertar.length > 0) {
-                const { error: errorMovimiento } = await supabase
-                    .from('movimiento')
-                    .insert(movimientosParaInsertar);
-                if (errorMovimiento) throw new Error(`Producto guardado, pero falló el movimiento: ${errorMovimiento.message}`);
+
+                if (movimientosParaInsertar.length > 0) {
+                    const { error: errorMovimiento } = await supabase
+                        .from('movimiento')
+                        .insert(movimientosParaInsertar);
+                    
+                    if (errorMovimiento) {
+                         // Nota: Si falla aquí, el producto ya se creó. 
+                         // En un sistema real necesitaríamos una transacción SQL o borrar el producto.
+                         console.error("Error asiento:", errorMovimiento);
+                         toast.error("Producto creado, pero falló el registro contable.");
+                    }
+                }
             }
 
             return { success: true };
 
         } catch (err) {
-            setError(err.message);
+            // setError(err.message); // Opcional
             console.error("Error al agregar producto:", err);
-            // --- 5. CORRECCIÓN DE ERROR ---
-            // Tu componente busca 'result.message', no 'result.error'
             return { success: false, message: err.message };
         } finally {
             setIsLoading(false);
