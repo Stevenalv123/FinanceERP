@@ -26,7 +26,6 @@ const navLinks = [
     { to: "estadosFinancieros", label: 'Estados Financieros', icon: FileSpreadsheetIcon },
     { to: "analisis", label: 'Análisis', icon: ChartColumn },
     { to: "proyecciones", key: 'proyecciones', label: 'Proyecciones', icon: TrendingUp },
-    { to: "reportes", label: 'Reportes', icon: TrendingUp },
 ];
 
 // Componente de enlace reutilizable
@@ -104,7 +103,7 @@ export default function Dashboard() {
             <div className="bg-primary min-h-screen flex flex-col md:flex-row">
 
                 {/* --- BARRA LATERAL (VISIBLE EN ESCRITORIO) --- */}
-                <aside className="hidden md:flex md:flex-col w-64 bg-primary border-r border-secondary p-4">
+                <aside className="hidden md:flex md:flex-col w-64 bg-primary border-r border-secondary p-4 fixed top-0 left-0 h-screen overflow-y-auto">
                     <div className="flex flex-col mb-6">
                         <h3 className="text-title text-2xl font-bold">Finance ERP</h3>
                         <span className="text-subtitle text-l truncate" title={empresaSeleccionada ? empresaSeleccionada.nombre : "Seleccione empresa"}>
@@ -120,10 +119,10 @@ export default function Dashboard() {
                 </aside>
 
                 {/* --- CONTENIDO PRINCIPAL (HEADER MÓVIL + CONTENIDO) --- */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col md:ml-64">
 
                     {/* --- HEADER RESPONSIVO --- */}
-                    <header className="flex flex-row border-b-1 border-secondary p-3 justify-between items-center sticky top-0 bg-primary z-10">
+                    <header className="flex flex-row bg-primary border-b-1 border-secondary p-3 justify-between items-center sticky top-0 z-10">
 
                         {/* Botón de Menú Hamburguesa (solo en móvil) */}
                         <button

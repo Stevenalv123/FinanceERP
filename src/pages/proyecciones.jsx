@@ -41,22 +41,20 @@ export default function Proyecciones() {
     }, [empresaId, fechaBase]);
 
     // 2. Calcular la Proyección (Lógica Financiera)
+    // 2. Calcular la Proyección (Lógica Financiera Avanzada)
     const datosProyectados = useMemo(() => {
         if (cuentasBase.length === 0) return null;
 
         const factor = 1 + (porcentajeCrecimiento / 100);
 
-        // Filtramos y agrupamos igual que en el Balance
+        // --- PASO 1: PROYECTAR ACTIVOS Y PASIVOS ---
         const agrupar = (tipo) => cuentasBase
             .filter(c => c.tipo === tipo && c.saldo !== 0)
             .map(c => {
-                // REGLA DE PROYECCIÓN:
-                // Normalmente proyectamos Activos y Pasivos Operativos.
-                // El Patrimonio NO se multiplica directamente, es la cuenta de cuadre.
                 let saldoProyectado = c.saldo;
                 
-                // Si es Activo o Pasivo (y no es Depreciación ni Impuestos fijos), aplicamos el crecimiento
-                if (['Activo', 'Pasivo', 'Ingreso', 'Costo', 'Gasto'].includes(c.tipo)) {
+                // Activos y Pasivos crecen con las ventas
+                if (['Activo', 'Pasivo'].includes(c.tipo)) {
                      saldoProyectado = c.saldo * factor;
                 }
 
@@ -69,41 +67,48 @@ export default function Proyecciones() {
 
         const activos = agrupar('Activo');
         const pasivos = agrupar('Pasivo');
+
+        // --- PASO 2: PATRIMONIO ---
         const patrimonio = cuentasBase.filter(c => c.tipo === 'Patrimonio').map(c => ({
             ...c,
             saldoBase: c.saldo,
-            saldoProyectado: c.saldo // El capital social no suele crecer por magia, se mantiene fijo
+            saldoProyectado: c.saldo // Capital Social se mantiene fijo
         }));
 
-        // Calcular Totales
+        // --- PASO 3: CALCULAR TOTALES (EN ORDEN) ---
         const totalActivosBase = activos.reduce((sum, c) => sum + c.saldoBase, 0);
         const totalActivosProy = activos.reduce((sum, c) => sum + c.saldoProyectado, 0);
 
+        // Nota: Pasivos y Patrimonio son NEGATIVOS en la BD
         const totalPasivosBase = pasivos.reduce((sum, c) => sum + c.saldoBase, 0);
         const totalPasivosProy = pasivos.reduce((sum, c) => sum + c.saldoProyectado, 0);
 
         const totalPatrimonioBase = patrimonio.reduce((sum, c) => sum + c.saldoBase, 0);
         
-        // ECUACIÓN CONTABLE: Activo = Pasivo + Patrimonio
-        // El "Patrimonio Proyectado" debe ser la diferencia para que cuadre.
-        // Esa diferencia es, en esencia, la "Utilidad Retenida Proyectada".
-        const totalPatrimonioProyCalculado = totalActivosProy - totalPasivosProy;
+        // --- PASO 4: CÁLCULO DE AJUSTES (CONTABILIDAD PURA) ---
         
-        // Calculamos cuánto creció el patrimonio (La utilidad generada por la proyección)
+        // Ecuación: Activo + Pasivo + Patrimonio = 0
+        // Despejamos el Patrimonio Total Necesario:
+        // Patrimonio_Proy = -(Activo_Proy + Pasivo_Proy)
+        // Ejemplo: -(110 + -40) = -(70) = -70
+        const totalPatrimonioProyCalculado = -(totalActivosProy + totalPasivosProy);
+        
+        // La "Utilidad Requerida" es la diferencia entre lo que necesitamos tener y lo que ya tenemos (Capital)
+        // Utilidad = Patrimonio_Necesario - Capital_Base
         const utilidadProyectada = totalPatrimonioProyCalculado - totalPatrimonioBase;
-
+        
         return {
             activos,
             pasivos,
             patrimonio,
-            utilidadProyectada,
+            utilidadProyectada, // Este valor será negativo en BD (Haber), pero positivo visualmente
             totales: {
                 activosBase: totalActivosBase,
                 activosProy: totalActivosProy,
-                pasivosBase: totalPasivosBase * -1, // Mostrar positivo
+                pasivosBase: totalPasivosBase * -1, // Invertir para visualización
                 pasivosProy: totalPasivosProy * -1,
                 patrimonioBase: totalPatrimonioBase * -1,
-                patrimonioProy: totalPatrimonioProyCalculado * -1 // El calculado para cuadrar
+                patrimonioProy: totalPatrimonioProyCalculado * -1 
             }
         };
     }, [cuentasBase, porcentajeCrecimiento]);
@@ -118,7 +123,7 @@ export default function Proyecciones() {
                     <h4 className="font-semibold text-xl text-title flex items-center gap-2">
                         <TrendingUp className="text-green-500" /> Proyecciones Financieras
                     </h4>
-                    <p className="text-subtitle text-sm">Simula el crecimiento de tu empresa para el próximo periodo.</p>
+                    <p className="text-subtitle text-sm">Crecimiento de tu empresa para el próximo periodo.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 bg-secondary p-3 rounded-xl border border-secondary">
@@ -167,7 +172,7 @@ export default function Proyecciones() {
 
                         {/* ACTIVOS */}
                         <div className="mb-4">
-                            <h5 className="text-green-600 font-bold text-sm mb-2 pl-2">ACTIVOS (Inversión)</h5>
+                            <h5 className="text-green-600 font-bold text-sm mb-2 pl-2">ACTIVOS</h5>
                             {datosProyectados.activos.map(c => (
                                 <FilaProyeccion key={c.id_cuenta} label={c.cuenta} base={c.saldoBase} proy={c.saldoProyectado} />
                             ))}
@@ -176,7 +181,7 @@ export default function Proyecciones() {
 
                         {/* PASIVOS */}
                         <div className="mb-4">
-                            <h5 className="text-red-500 font-bold text-sm mb-2 pl-2">PASIVOS (Deudas)</h5>
+                            <h5 className="text-red-500 font-bold text-sm mb-2 pl-2">PASIVOS</h5>
                             {datosProyectados.pasivos.map(c => (
                                 <FilaProyeccion key={c.id_cuenta} label={c.cuenta} base={c.saldoBase * -1} proy={c.saldoProyectado * -1} />
                             ))}
@@ -185,7 +190,7 @@ export default function Proyecciones() {
 
                         {/* PATRIMONIO */}
                         <div className="mb-4">
-                            <h5 className="text-blue-500 font-bold text-sm mb-2 pl-2">PATRIMONIO (Capital + Resultados)</h5>
+                            <h5 className="text-blue-500 font-bold text-sm mb-2 pl-2">PATRIMONIO</h5>
                             {datosProyectados.patrimonio.map(c => (
                                 <FilaProyeccion key={c.id_cuenta} label={c.cuenta} base={c.saldoBase * -1} proy={c.saldoProyectado * -1} />
                             ))}
@@ -214,7 +219,34 @@ export default function Proyecciones() {
                                 </div>
                             </div>
                         </div>
-
+                        
+                        <div className="mt-6 p-6 bg-gradient-to-br from-secondary/20 to-primary border border-secondary rounded-2xl">
+                            <h3 className="text-lg font-bold text-title mb-4 flex items-center gap-2">
+                                <Calculator className="text-blue-400" /> Análisis de Financiamiento
+                            </h3>
+                            <p className="text-subtitle text-sm mb-4">
+                                Para lograr un crecimiento del <span className="text-green-400 font-bold">{porcentajeCrecimiento}%</span> en activos, 
+                                la empresa necesitará aumentar sus recursos en <span className="font-bold text-title">{formatMoney(datosProyectados.totales.activosProy - datosProyectados.totales.activosBase)}</span>.
+                            </p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="bg-secondary/30 p-4 rounded-xl">
+                                    <p className="text-xs text-subtitle uppercase">Financiamiento vía Pasivos</p>
+                                    <p className="text-lg font-mono text-red-400 font-bold">
+                                        {formatMoney((datosProyectados.totales.pasivosProy - datosProyectados.totales.pasivosBase))}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">Proveedores y Deudas que crecen solos</p>
+                                </div>
+                                
+                                <div className="bg-secondary/30 p-4 rounded-xl border border-green-500/30">
+                                    <p className="text-xs text-subtitle uppercase">Utilidad Neta Requerida</p>
+                                    <p className="text-lg font-mono text-green-400 font-bold">
+                                        {formatMoney((datosProyectados.utilidadProyectada * -1))}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">Ganancia necesaria para no pedir prestado</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

@@ -1,3 +1,4 @@
+
 import Tabs from "../components/tabs";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Zap, Download } from "lucide-react";
@@ -10,6 +11,7 @@ import FlujoEfectivoReporte from "../components/flujoEfectivoReporte";
 import usePersistentState from "../hooks/usePersistentState";
 import { exportFinancialReports } from "../utils/exportToExcel";
 import EstadoOrigenAplicacionReporte from "../components/estadoOrigenAplicacionReporte";
+import BalanzaComprobacionReporte from "../components/balanzaComprobacionReporte";
 
 const getTodayString = () => {
     const today = new Date();
@@ -22,6 +24,7 @@ export default function EstadosFinancieros() {
     const [cuentasAnteriores, setCuentasAnteriores] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [tabs, setTabs] = useState([
+        { key: 'balanzaComprobacion', label: 'Balanza de Comprobación' },
         { key: 'balanceGeneral', label: 'Balance General' },
         { key: 'estadoResultados', label: 'Estado de Resultados' },
         { key: 'flujoEfectivo', label: 'Flujo de Efectivo' },
@@ -39,6 +42,7 @@ export default function EstadosFinancieros() {
     );
     const [isProcessing, setIsProcessing] = useState(false);
     const { empresaId } = useEmpresa();
+    const [datosBalanza, setDatosBalanza] = useState([]);
 
     useEffect(() => {
         const fetchEmpresaInfo = async () => {
@@ -91,6 +95,15 @@ export default function EstadosFinancieros() {
             });
             if (errorActual) throw errorActual;
             setCuentasActuales(dataActual || []);
+
+            const { data: dataBalanza, error: errorBalanza } = await supabase.rpc('sp_get_balanza_comprobacion', {
+                p_id_empresa: empresaId,
+                p_fecha_inicio: fechaInicio,
+                p_fecha_corte: fechaCierre
+            });
+
+            if (errorBalanza) throw errorBalanza;
+            setDatosBalanza(dataBalanza || []);
 
         } catch (error) {
             toast.error(`Error al generar reportes: ${error.message}`);
@@ -268,7 +281,7 @@ export default function EstadosFinancieros() {
                         </button>
                         <button
                             className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
-                            onClick={() => exportFinancialReports(datosActuales, datosAnteriores, empresaInfo, fechaInicio, fechaCierre)}
+                            onClick={() => exportFinancialReports(datosActuales, datosAnteriores, empresaInfo, fechaInicio, fechaCierre, datosBalanza)}
                             disabled={isLoading || cuentasActuales.length === 0}
                         >
                             <Download size={16} />
@@ -316,6 +329,15 @@ export default function EstadosFinancieros() {
                         isLoading={isLoading}
                         datosActuales={datosActuales}
                         datosAnteriores={datosAnteriores}
+                    />
+                </div>
+            )}
+
+            {activeTab === 'balanzaComprobacion' && (
+                <div className="mt-4 overflow-x-auto">
+                    <BalanzaComprobacionReporte
+                        isLoading={isLoading}
+                        datosBalanza={datosBalanza}
                     />
                 </div>
             )}
